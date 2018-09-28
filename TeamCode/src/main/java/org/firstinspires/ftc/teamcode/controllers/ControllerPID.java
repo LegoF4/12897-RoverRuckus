@@ -125,7 +125,7 @@ public abstract class ControllerPID{
         //Controls termination mechanic
         @Override
         public void interrupt() {
-            StaticLog.addLine("Interupted At: " + Long.toString(System.currentTimeMillis()));
+            StaticLog.addLine("PID Interupted At: " + Long.toString(System.currentTimeMillis()));
             isActive = false;
             super.interrupt();
         }

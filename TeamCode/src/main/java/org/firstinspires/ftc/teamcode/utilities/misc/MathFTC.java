@@ -28,6 +28,14 @@ public class MathFTC {
         return sqrt(norm);
     }
 
+    public static double simplifyDeg(double angle) {
+        return angle >= 0 ? angle % 360 : (angle % 360) + 360;
+    }
+
+    public static double simplifyRad(double angle) {
+        return angle >= 0 ? angle % 2*Math.PI : (angle % 2*Math.PI) + 2*Math.PI;
+    }
+
     public static List<Double> normalizeToMax(List<Double> start, double maxV) {
         double max = Collections.max(start);
         for (int i = 0; i < start.size(); i++) {
