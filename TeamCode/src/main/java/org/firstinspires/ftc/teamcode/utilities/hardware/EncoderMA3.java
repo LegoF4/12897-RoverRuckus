@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.utilities.hardware;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.StaticLog;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 
 /**
@@ -11,11 +13,11 @@ import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 public class EncoderMA3 extends Encoder {
 
     //Hardware Parameters
-    public static double MaxVoltage = 3.6; //In volts
+    public static double MaxVoltage = 3.26; //In volts
     public static double MinVoltage = 0.0; //In volts
-    public static double threshold = 0.01; //In degrees
+    public static double threshold = 0.1; //In degrees
 
-    private volatile AnalogInput encoder; //The hardware device
+    public volatile AnalogInput encoder; //The hardware device
 
     //Tracking Variables
     private volatile double zeroPosition; //In absolute degrees
@@ -40,26 +42,47 @@ public class EncoderMA3 extends Encoder {
      */
     public synchronized double getPosition() {
         measuredPosition = 360*encoder.getVoltage()/(MaxVoltage - MinVoltage);
-
-        if(firstDerivative > 0 && measuredPosition < MathFTC.simplifyDeg(priorPosition)) {
-            currentPosition  += measuredPosition + 360 - MathFTC.simplifyDeg(priorPosition);
-        } else if (firstDerivative < 0 && measuredPosition > MathFTC.simplifyDeg(priorPosition)) {
-            currentPosition  -= MathFTC.simplifyDeg(priorPosition) + 360 - measuredPosition;
-        } else if(Math.abs(currentPosition - priorPosition) > threshold) {
-            currentPosition += measuredPosition;
-            firstDerivative = Math.signum(currentPosition - priorPosition);
+        //StaticLog.addLine("-----Encoder Cycle-----");
+        //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
+        //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
+        if(firstDerivative > 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+            currentPosition  += measuredPosition + 360 - priorPosition;
+        } else if (firstDerivative < 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+            currentPosition  -= priorPosition + 360 - measuredPosition;
+        } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
+            firstDerivative = Math.signum(measuredPosition - priorPosition);
+            currentPosition += measuredPosition - priorPosition;
         } else {
-            priorPosition = currentPosition;
             firstDerivative = 0;
         }
+        priorPosition = measuredPosition;
+        //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));
+        //StaticLog.addLine("Current Position: " + Double.toString(currentPosition-zeroPosition));
         return (currentPosition - zeroPosition); //Corrects for zero position and over-counting
+    }
+
+    public synchronized double getPositionO() {
+        double newEncoderAngle = encoder.getVoltage() / 3.26 * 360 + 180 - priorPosition;
+
+        if (newEncoderAngle > 360) {
+            newEncoderAngle -= 360;
+        }
+
+        if (newEncoderAngle < 0) {
+            newEncoderAngle += 360;
+        }
+
+        double degreesChanged = newEncoderAngle - 180;
+
+        priorPosition = currentPosition;
+
+        return (degreesChanged / 360);
     }
 
     /**
      * Sets encoder zero position to current position.
      */
     public synchronized void setZeroPosition() {
-        this.encoder.resetDeviceConfigurationForOpMode();
         this.zeroPosition = 360*encoder.getVoltage()/(MaxVoltage - MinVoltage);
     }
 
@@ -68,8 +91,14 @@ public class EncoderMA3 extends Encoder {
      * @param position The desired zero position, in degrees
      */
     public synchronized void setZeroPosition(double position) {
-        this.encoder.resetDeviceConfigurationForOpMode();
         this.zeroPosition = position;
+    }
+
+    /**
+     * Resets internal encoder device
+     */
+    public synchronized void reset() {
+        this.encoder.resetDeviceConfigurationForOpMode();
     }
 
 

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.StaticLog;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,9 +25,9 @@ public class RefreshRateTest extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
        this.robot = new Robot(hardwareMap);
+        StaticLog.clearLog();
 
         waitForStart();
-
         while (opModeIsActive()) {
 
             if ((temp != (robot.left.getVoltage()/3.26*360)) && timeElapsed < 3000) {
@@ -47,7 +48,7 @@ public class RefreshRateTest extends LinearOpMode {
                 timeElapsed = (new Date()).getTime() - startTime;
             }
 
-            telemetry.addData("Three Seconds: ", refreshCounterThreeSeconds/3);
+            StaticLog.addLine("Three Seconds: " + Double.toString(refreshCounterThreeSeconds/3));
             telemetry.addData("Five Seconds: ", refreshCounterFiveSeconds/5);
             telemetry.addData("Ten Seconds: ", refreshCounterTenSeconds/10);
             telemetry.addData("xLeft Encoder Data", robot.left.getVoltage()/3.26*360);
