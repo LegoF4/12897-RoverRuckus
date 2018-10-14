@@ -15,7 +15,7 @@ public class EncoderMA3 extends Encoder {
     //Hardware Parameters
     public static double MaxVoltage = 3.26; //In volts
     public static double MinVoltage = 0.0; //In volts
-    public static double threshold = 0.1; //In degrees
+    public static double threshold = 0.3; //In degrees
 
     public volatile AnalogInput encoder; //The hardware device
 
@@ -45,9 +45,33 @@ public class EncoderMA3 extends Encoder {
         //StaticLog.addLine("-----Encoder Cycle-----");
         //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
         //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
-        if(firstDerivative > 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+        if(firstDerivative >= 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
             currentPosition  += measuredPosition + 360 - priorPosition;
-        } else if (firstDerivative < 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+        } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+            currentPosition  -= priorPosition + 360 - measuredPosition;
+        } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
+            firstDerivative = Math.signum(measuredPosition - priorPosition);
+            currentPosition += measuredPosition - priorPosition;
+        } else {
+            firstDerivative = 0;
+        }
+        priorPosition = measuredPosition;
+        //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));
+        //StaticLog.addLine("Current Position: " + Double.toString(currentPosition-zeroPosition));
+        return (currentPosition - zeroPosition); //Corrects for zero position and over-counting
+    }
+
+    /**
+     * Retrieves the encoders current position
+     * @return The number of degrees traversed from the zero position
+     */
+    public synchronized double getPosition(double measuredPosition) {
+        //StaticLog.addLine("-----Encoder Cycle-----");
+        //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
+        //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
+        if(firstDerivative >= 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
+            currentPosition  += measuredPosition + 360 - priorPosition;
+        } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
             currentPosition  -= priorPosition + 360 - measuredPosition;
         } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
             firstDerivative = Math.signum(measuredPosition - priorPosition);

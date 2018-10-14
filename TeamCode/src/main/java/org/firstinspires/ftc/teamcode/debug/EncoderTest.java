@@ -8,6 +8,9 @@ import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
 import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by LeviG on 9/30/2018.
  */
@@ -25,17 +28,33 @@ public class EncoderTest extends LinearOpMode{
         Thread.sleep(100);
         waitForStart();
         int count = 0;
-        while(opModeIsActive()) {
-            StaticLog.addLine("V: " + Double.toString(encoder.encoder.getVoltage()));
+        boolean run = true;
+        List<Double> vs = new ArrayList<Double>();
+        List<Double> as = new ArrayList<Double>();
+        long startTime = System.currentTimeMillis();
+        while(opModeIsActive() && run) {
+            double measuredPosition = 360*encoder.encoder.getVoltage()/(encoder.MaxVoltage - encoder.MinVoltage);
+            vs.add(measuredPosition);
+            as.add(encoder.getPosition(measuredPosition));
             count++;
-            if(count % 10 == 0) {
-                telemetry.addLine("Traversed Degrees: " + Double.toString(encoder.getPosition()));
-                telemetry.addLine("Voltage: " + Double.toString(encoder.encoder.getVoltage()));
-                telemetry.update();
+            //if(count % 10 == 0) {
+              //  telemetry.addLine("Traversed Degrees: " + Double.toString(encoder.getPosition()));
+             //   telemetry.addLine("Voltage: " + Double.toString(encoder.encoder.getVoltage()));
+             //   telemetry.update();
+           // }
+            if(count > 750) {
+                run = false;
             }
             //encoder.getPosition();
             Thread.sleep(20);
         }
-
+        this.telemetry.addLine("Elapsed Time: " + Double.toString((System.currentTimeMillis()-startTime)/1000));
+        telemetry.update();
+        for (Double v : vs) {
+            StaticLog.addLine("V " + Double.toString(v));
+        }
+        for(Double a : as) {
+            StaticLog.addLine("A " + Double.toString(a));
+        }
     }
 }
