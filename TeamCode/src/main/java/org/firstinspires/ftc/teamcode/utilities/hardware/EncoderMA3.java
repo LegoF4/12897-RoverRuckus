@@ -23,7 +23,8 @@ public class EncoderMA3 extends Encoder {
     private volatile double zeroPosition; //In absolute degrees
     private volatile double priorPosition; //In absolute degrees
     private volatile double currentPosition; //In absolute degrees
-    private volatile double firstDerivative; //Parity only
+    private volatile double firstDerivative; //In degrees per dynamic tick
+    private volatile double changePosition;
     private volatile double measuredPosition; //In degrees
 
 
@@ -46,15 +47,19 @@ public class EncoderMA3 extends Encoder {
         //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
         //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
         if(firstDerivative >= 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            currentPosition  += measuredPosition + 360 - priorPosition;
+            changePosition = measuredPosition + 360 - priorPosition;
         } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            currentPosition  -= priorPosition + 360 - measuredPosition;
+            changePosition = -1*(priorPosition + 360 - measuredPosition);
         } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
             firstDerivative = Math.signum(measuredPosition - priorPosition);
-            currentPosition += measuredPosition - priorPosition;
+            changePosition += measuredPosition - priorPosition;
         } else {
             firstDerivative = 0;
         }
+        if(Math.abs(changePosition) > 180) {
+            changePosition = firstDerivative;
+        }
+        currentPosition += changePosition;
         priorPosition = measuredPosition;
         //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));
         //StaticLog.addLine("Current Position: " + Double.toString(currentPosition-zeroPosition));
@@ -74,10 +79,13 @@ public class EncoderMA3 extends Encoder {
         } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
             currentPosition  -= priorPosition + 360 - measuredPosition;
         } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
-            firstDerivative = Math.signum(measuredPosition - priorPosition);
+            firstDerivative = measuredPosition - priorPosition;
             currentPosition += measuredPosition - priorPosition;
         } else {
             firstDerivative = 0;
+        }
+        if(Math.abs(currentPosition-priorPosition) > 180) {
+
         }
         priorPosition = measuredPosition;
         //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));

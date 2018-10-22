@@ -46,7 +46,7 @@ public class EncoderTest extends LinearOpMode{
                 run = false;
             }
             //encoder.getPosition();
-            Thread.sleep(20);
+            Thread.sleep(40);
         }
         this.telemetry.addLine("Elapsed Time: " + Double.toString((System.currentTimeMillis()-startTime)/1000));
         telemetry.update();
