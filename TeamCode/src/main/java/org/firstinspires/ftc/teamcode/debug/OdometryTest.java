@@ -16,29 +16,26 @@ import java.util.List;
 @TeleOp(name = "Odometry Test")
 public class OdometryTest extends LinearOpMode {
 
-    Odometry odometricTracker;
+    private Odometry odometricTracker;
+
     @Override
     public void runOpMode() throws InterruptedException{
         Encoder left = new EncoderMA3(this.hardwareMap.analogInput.get("left"));
         Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
         Encoder right = new EncoderMA3(this.hardwareMap.analogInput.get("right"));
-        left.reset();
-        center.reset();
-        right.reset();
-        Thread.sleep(300);
-        odometricTracker = new Odometry(left, center, right, 50);
-        Thread.sleep(300);
+        odometricTracker = new Odometry(left, center, right, 25);
+        Thread.sleep(1000);
         odometricTracker.init();
-        Thread.sleep(300);
+        Thread.sleep(1000);
         odometricTracker.startControl();
         StaticLog.clearLog();
         waitForStart();
         List<Double> coords;
         while(this.opModeIsActive()) {
             coords =  odometricTracker.getPosition();
-            telemetry.addData("X-Coord: ", coords.get(0));
-            telemetry.addData("Y-Coord: ", coords.get(1));
-            telemetry.addData("φ-Coord: ", coords.get(2));
+            telemetry.addData("X-Coord: ", String.format("%.3f", coords.get(0)));
+            telemetry.addData("Y-Coord: ", String.format("%.3f", coords.get(1)));
+            telemetry.addData("φ-Coord: ", String.format("%.3f", coords.get(2)));
             telemetry.update();
             Thread.sleep(200);
         }
