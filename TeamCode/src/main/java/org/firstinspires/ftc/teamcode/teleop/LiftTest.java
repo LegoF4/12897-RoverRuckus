@@ -8,26 +8,32 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 @TeleOp(name="LiftTest")
 public class LiftTest extends LinearOpMode {
 
-    public DcMotor lift;
+    public DcMotor lift1;
+    public DcMotor lift2;
 
     public void runOpMode() {
 
-        lift = hardwareMap.dcMotor.get("l");
+        lift1 = hardwareMap.dcMotor.get("l1");
+        lift2 = hardwareMap.dcMotor.get("l2");
 
         waitForStart();
 
         while (opModeIsActive()) {
 
             if (gamepad1.a) {
-                lift.setPower(1);
+                lift1.setPower(1);
+                lift2.setPower(-1);
             } else if (!gamepad1.a) {
-                lift.setPower(0);
+                lift1.setPower(0);
+                lift2.setPower(0);
             }
 
             if (gamepad1.b) {
-                lift.setPower(-1);
+                lift1.setPower(-1);
+                lift2.setPower(1);
             } else if (!gamepad1.b) {
-                lift.setPower(0);
+                lift1.setPower(0);
+                lift2.setPower(0);
             }
 
         }

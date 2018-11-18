@@ -3,12 +3,11 @@ package org.firstinspires.ftc.teamcode.debug;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.navigation.Odometry;
+import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
 import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
-
-import java.util.List;
 
 /**
  * Created by LeviG on 9/27/2018.
@@ -27,15 +26,14 @@ public class OdometryTest extends LinearOpMode {
         Thread.sleep(1000);
         odometricTracker.init();
         Thread.sleep(1000);
-        odometricTracker.startControl();
+        odometricTracker.startTracking();
         StaticLog.clearLog();
         waitForStart();
-        List<Double> coords;
         while(this.opModeIsActive()) {
-            coords =  odometricTracker.getPosition();
-            telemetry.addData("X-Coord: ", String.format("%.3f", coords.get(0)));
-            telemetry.addData("Y-Coord: ", String.format("%.3f", coords.get(1)));
-            telemetry.addData("φ-Coord: ", String.format("%.3f", coords.get(2)));
+            Position pos =  odometricTracker.getPosition();
+            telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
+            telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
+            telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
             telemetry.update();
             Thread.sleep(200);
         }
@@ -43,7 +41,7 @@ public class OdometryTest extends LinearOpMode {
 
     @Override
     public void stop() {
-        odometricTracker.stopControl();
+        odometricTracker.stopTracking();
         super.stop();
     }
 }

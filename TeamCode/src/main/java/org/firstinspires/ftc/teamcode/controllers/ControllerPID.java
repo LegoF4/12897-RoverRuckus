@@ -110,11 +110,11 @@ public abstract class ControllerPID{
                 //Find desired power adjustment
                 double u;
                 u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(System.currentTimeMillis()-timeLast) + kI*errorTotal + forwardTerm;
-                if(Math.abs(u) < powerThreshold) u = 0; //Prevents super low amplitude adjustments
+                if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
                 synchronized (this) {setOutput(u);}
                 //Loop again in T ms
                 try {
-                    Thread.sleep(T);
+                    Thread.sleep((long) (T-(System.currentTimeMillis()-timeLast)));
                  //Terminate on exception
                 } catch(InterruptedException e) {
                     isActive = false;

@@ -32,6 +32,7 @@ public class Odometry {
 
     private volatile long startTime;
     private volatile long count = 0;
+    private volatile List<Position> positions;
 
     //Thread Management
     private volatile Thread controlLoop;
@@ -45,6 +46,8 @@ public class Odometry {
         this.x0 = x;
         this.y0 = y;
         this.phi0 = phi;
+        positions = new ArrayList<Position>();
+        positions.add(new Position (x,y,phi,System.currentTimeMillis()));
 
         //Instantiates odometry thread
         synchronized (this) {
@@ -58,14 +61,12 @@ public class Odometry {
     }
 
     private class OdometryThread extends Thread {
+
         @Override
         public void run() {
-            left.setZeroPosition();
-            center.setZeroPosition();
-            right.setZeroPosition();
-            double leftPrior = wheelCircumference * left.getPosition();
-            double centerPrior = wheelCircumference * center.getPosition();
-            double rightPrior = wheelCircumference * right.getPosition();
+            double leftPrior = 0;
+            double centerPrior = 0;
+            double rightPrior = 0;
             StaticLog.addLine("-----Odometry Initiation Call-----");
             StaticLog.addLine("Left Travel: " + Double.toString(leftPrior));
             StaticLog.addLine("Center Travel: " + Double.toString(centerPrior));
@@ -85,42 +86,37 @@ public class Odometry {
             boolean obtuse = false;
             while (isActive) {
                 if (obtuse) StaticLog.addLine("-----Odometry Encoder Call-----");
-                count += 1;
                 synchronized (this) {
                     leftCurrent = wheelCircumference * left.getPosition() / 360;
                     centerCurrent = wheelCircumference * center.getPosition() / 360;
                     rightCurrent = wheelCircumference * right.getPosition() / 360;
                     phiCurrent = phiT;
                 }
-                if (obtuse)StaticLog.addLine("-----Odometry Cycle-----");
-                if (obtuse)StaticLog.addLine("Left Travel: " + Double.toString(leftCurrent));
-                if (obtuse)StaticLog.addLine("Center Travel: " + Double.toString(centerCurrent));
-                if (obtuse)StaticLog.addLine("Right Travel: " + Double.toString(rightCurrent));
+                if (obtuse) StaticLog.addLine("-----Odometry Cycle-----");
+                if (obtuse) StaticLog.addLine("Left Travel: " + Double.toString(leftCurrent));
+                if (obtuse) StaticLog.addLine("Center Travel: " + Double.toString(centerCurrent));
+                if (obtuse) StaticLog.addLine("Right Travel: " + Double.toString(rightCurrent));
 
                 deltaLeft = leftCurrent - leftPrior;
                 deltaCenter = centerCurrent - centerPrior;
                 deltaRight = -1*(rightCurrent - rightPrior);
 
-                //deltaLeft = leftCurrent;
-                //deltaCenter = centerCurrent;
-                //deltaRight = -1*rightCurrent;
-
-                if (obtuse)StaticLog.addLine("Δ Left: " + Double.toString(deltaLeft));
-                if (obtuse)StaticLog.addLine("Δ Center: " + Double.toString(deltaCenter));
-                if (obtuse)StaticLog.addLine("Δ Right: " + Double.toString(deltaRight));
+                if (obtuse) StaticLog.addLine("Δ Left: " + Double.toString(deltaLeft));
+                if (obtuse) StaticLog.addLine("Δ Center: " + Double.toString(deltaCenter));
+                if (obtuse) StaticLog.addLine("Δ Right: " + Double.toString(deltaRight));
 
                 deltaLinear = (deltaLeft + deltaRight) / 2;
-                if (obtuse)StaticLog.addLine("Δ Linear: " + Double.toString(deltaLinear));
+                if (obtuse) StaticLog.addLine("Δ Linear: " + Double.toString(deltaLinear));
 
                 deltaPhi = 360*((deltaRight - deltaLeft) / (2*robotDiameter*Math.PI));
-                if (obtuse)StaticLog.addLine("Δφ: " + Double.toString(deltaPhi));
+                if (obtuse) StaticLog.addLine("Δφ: " + Double.toString(deltaPhi));
                 phiCurrent = (Math.PI/180)*(phiCurrent + deltaPhi*0.5);
-                if (obtuse)StaticLog.addLine("φ Current: " + Double.toString(phiCurrent));
+                if (obtuse) StaticLog.addLine("φ Current: " + Double.toString(phiCurrent));
 
                 deltaX = deltaLinear*Math.cos(phiCurrent) + deltaCenter*Math.sin(phiCurrent);
-                if (obtuse)StaticLog.addLine("ΔX: " + Double.toString(deltaX));
+                if (obtuse) StaticLog.addLine("ΔX: " + Double.toString(deltaX));
                 deltaY = deltaLinear*Math.sin(phiCurrent) + deltaCenter*Math.cos(phiCurrent);
-                if (obtuse)StaticLog.addLine("ΔY: " + Double.toString(deltaY));
+                if (obtuse) StaticLog.addLine("ΔY: " + Double.toString(deltaY));
 
                 leftPrior = leftCurrent;
                 centerPrior = centerCurrent;
@@ -132,6 +128,7 @@ public class Odometry {
                     if (obtuse)StaticLog.addLine("x(t): " + Double.toString(xT));
                     yT += deltaY;
                     if (obtuse)StaticLog.addLine("y(t): " + Double.toString(yT));
+                    positions.add(new Position(xT, yT, phiT, System.currentTimeMillis()));
                 }
 
                 try {
@@ -166,18 +163,17 @@ public class Odometry {
         StaticLog.addLine("Odometry Initiated At: " + Long.toString(System.currentTimeMillis()));
     }
 
-    synchronized public List<Double> getPosition() {
-        List<Double> coords = new ArrayList<Double>();
-        coords.add(xT*Math.cos((Math.PI/180)*phi0)+yT*Math.sin((Math.PI/180)*phi0)+x0);
-        coords.add(xT*Math.sin((Math.PI/180)*phi0)+yT*Math.cos((Math.PI/180)*phi0)+y0);
-        coords.add(phiT+phi0);
-        return coords;
+    synchronized public Position getPosition() {
+        double x = xT*Math.cos((Math.PI/180)*phi0)+yT*Math.sin((Math.PI/180)*phi0)+x0;
+        double y = xT*Math.sin((Math.PI/180)*phi0)+yT*Math.cos((Math.PI/180)*phi0)+y0;
+        double phi = phiT+phi0;
+        return new Position(x,y,phi,System.currentTimeMillis());
     }
 
     /**
      * Starts a new instance of the odmometry loop
      */
-    synchronized public void startControl() {
+    synchronized public void startTracking() {
         StaticLog.addLine("Odometry Started At: " + Long.toString(System.currentTimeMillis()));
         isActive = true;
         controlLoop = new Odometry.OdometryThread();
@@ -188,7 +184,7 @@ public class Odometry {
     /**
      * Terminates the odometry loop
      */
-    synchronized public void stopControl() {
+    synchronized public void stopTracking() {
         isActive = false;
         controlLoop.interrupt();
     }

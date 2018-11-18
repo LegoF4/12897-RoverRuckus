@@ -68,6 +68,11 @@ public class MathFTC {
         return value;
     }
 
+    public static boolean inRange(double value, double min, double max) {
+        if(value >= min && value <= max) return true;
+        else return false;
+    }
+
     public static double solveFourBar(double g,double f,double a, double b,double alpha,boolean flipped) {
         double l = cosLawLength(a, g, alpha);
         double beta1 = cosLawAngle(g, l, a);

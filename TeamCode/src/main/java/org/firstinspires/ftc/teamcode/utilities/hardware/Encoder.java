@@ -12,6 +12,4 @@ public abstract class Encoder {
 
     public abstract void setZeroPosition(double position);
 
-    public abstract void reset();
-
 }

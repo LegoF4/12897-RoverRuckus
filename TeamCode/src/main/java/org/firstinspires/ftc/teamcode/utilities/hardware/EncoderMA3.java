@@ -15,17 +15,16 @@ public class EncoderMA3 extends Encoder {
     //Hardware Parameters
     public static double MaxVoltage = 3.26; //In volts
     public static double MinVoltage = 0.0; //In volts
-    public static double threshold = 0.3; //In degrees
+    public static double threshold = 0.4; //In degrees
 
     public volatile AnalogInput encoder; //The hardware device
 
     //Tracking Variables
     private volatile double zeroPosition; //In absolute degrees
-    private volatile double priorPosition; //In absolute degrees
-    private volatile double currentPosition; //In absolute degrees
+    private volatile double priorPosition; //In relative degrees
+    private volatile double currentPosition; //In relative degrees
     private volatile double firstDerivative; //In degrees per dynamic tick
-    private volatile double changePosition;
-    private volatile double measuredPosition; //In degrees
+    private volatile double measuredPosition; //In absolute degrees
 
 
     public EncoderMA3(AnalogInput input) {
@@ -43,26 +42,25 @@ public class EncoderMA3 extends Encoder {
      */
     public synchronized double getPosition() {
         measuredPosition = 360*encoder.getVoltage()/(MaxVoltage - MinVoltage);
-        //StaticLog.addLine("-----Encoder Cycle-----");
-        //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
-        //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
+
         if(firstDerivative >= 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            changePosition = measuredPosition + 360 - priorPosition;
+            firstDerivative = measuredPosition + 360 - priorPosition; //Positive wrap-around
         } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            changePosition = -1*(priorPosition + 360 - measuredPosition);
-        } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
-            firstDerivative = Math.signum(measuredPosition - priorPosition);
-            changePosition += measuredPosition - priorPosition;
+            firstDerivative = -1*(priorPosition + 360 - measuredPosition); //Negative wrap-around
+        } else if(MathFTC.inRange(Math.abs(measuredPosition - priorPosition), threshold, 180)) {
+            firstDerivative = measuredPosition - priorPosition; //Normal motion
         } else {
-            firstDerivative = 0;
+            firstDerivative = 0; //Holding still
         }
-        if(Math.abs(changePosition) > 180) {
-            changePosition = firstDerivative;
+
+        if(Math.abs(firstDerivative) > 180) {
+            firstDerivative = 0; //Accounts for large, single-tick fluctuations in encoder value
         }
-        currentPosition += changePosition;
-        priorPosition = measuredPosition;
-        //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));
-        //StaticLog.addLine("Current Position: " + Double.toString(currentPosition-zeroPosition));
+        if(firstDerivative != 0) { //If in valid motion, update prior position
+            priorPosition = measuredPosition;
+        }
+
+        currentPosition += firstDerivative; //Adjust dynamic motion track
         return (currentPosition - zeroPosition); //Corrects for zero position and over-counting
     }
 
@@ -71,44 +69,25 @@ public class EncoderMA3 extends Encoder {
      * @return The number of degrees traversed from the zero position
      */
     public synchronized double getPosition(double measuredPosition) {
-        //StaticLog.addLine("-----Encoder Cycle-----");
-        //StaticLog.addLine("Prior Position: " + Double.toString(priorPosition));
-        //StaticLog.addLine("Measured Position: " + Double.toString(measuredPosition));
         if(firstDerivative >= 0 && measuredPosition < priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            currentPosition  += measuredPosition + 360 - priorPosition;
+            firstDerivative = measuredPosition + 360 - priorPosition; //Positive wrap-around
         } else if (firstDerivative <= 0 && measuredPosition > priorPosition && Math.abs(measuredPosition - priorPosition) > 90) {
-            currentPosition  -= priorPosition + 360 - measuredPosition;
-        } else if(Math.abs(measuredPosition - priorPosition) > threshold) {
-            firstDerivative = measuredPosition - priorPosition;
-            currentPosition += measuredPosition - priorPosition;
+            firstDerivative = -1*(priorPosition + 360 - measuredPosition); //Negative wrap-around
+        } else if(MathFTC.inRange(Math.abs(measuredPosition - priorPosition), threshold, 180)) {
+            firstDerivative = measuredPosition - priorPosition; //Normal motion
         } else {
-            firstDerivative = 0;
+            firstDerivative = 0; //Holding still
         }
-        if(Math.abs(currentPosition-priorPosition) > 180) {
 
+        if(Math.abs(firstDerivative) > 180) {
+            firstDerivative = 0; //Accounts for large, single-tick fluctuations in encoder value
         }
-        priorPosition = measuredPosition;
-        //StaticLog.addLine("First Derivative: " + Double.toString(firstDerivative));
-        //StaticLog.addLine("Current Position: " + Double.toString(currentPosition-zeroPosition));
+        if(firstDerivative != 0) { //If in valid motion, update prior position
+            priorPosition = measuredPosition;
+        }
+
+        currentPosition += firstDerivative; //Adjust dynamic motion track
         return (currentPosition - zeroPosition); //Corrects for zero position and over-counting
-    }
-
-    public synchronized double getPositionO() {
-        double newEncoderAngle = encoder.getVoltage() / 3.26 * 360 + 180 - priorPosition;
-
-        if (newEncoderAngle > 360) {
-            newEncoderAngle -= 360;
-        }
-
-        if (newEncoderAngle < 0) {
-            newEncoderAngle += 360;
-        }
-
-        double degreesChanged = newEncoderAngle - 180;
-
-        priorPosition = currentPosition;
-
-        return (degreesChanged / 360);
     }
 
     /**
@@ -124,13 +103,6 @@ public class EncoderMA3 extends Encoder {
      */
     public synchronized void setZeroPosition(double position) {
         this.zeroPosition = position;
-    }
-
-    /**
-     * Resets internal encoder device
-     */
-    public synchronized void reset() {
-        this.encoder.resetDeviceConfigurationForOpMode();
     }
 
 
