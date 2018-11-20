@@ -17,10 +17,10 @@ public class Robot {
     }
 
     public void init() {
-
+        driveTrain.init();
     }
 
     public void stop() {
-
+        driveTrain.stop();
     }
 }

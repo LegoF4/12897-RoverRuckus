@@ -10,14 +10,11 @@
 
 package org.firstinspires.ftc.teamcode.controllers;
 
-import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
-import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
-
 /**
  * Created by LeviG on 11/20/2017.
  */
 
-public abstract class ControllerPID{
+public abstract class ControllerPID extends Controller {
     //Parameters
     public volatile double kP;
     public volatile double kD;
@@ -26,9 +23,6 @@ public abstract class ControllerPID{
     public long T;
     public double powerThreshold;
     public double errorThreshold;
-    //Thread Management
-    private volatile Thread controlLoop;
-    private volatile boolean isActive;
     //Desired Position
 
     public synchronized double getkP() {
@@ -63,6 +57,7 @@ public abstract class ControllerPID{
 
     //Constructor
     public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold) {
+        super();
         //Sets parameters
         this.kP = kP;
         this.kD = kD;
@@ -71,12 +66,7 @@ public abstract class ControllerPID{
         this.powerThreshold = powerThreshold;
         this.errorThreshold = errorThreshold;
         this.desiredPosition = 0;
-        this.fF = new NullFeed();
-        //Instantiates control thread
-        synchronized (this) {
-            this.controlLoop = new ControlThread();
-            this.isActive = false;
-        }
+        this.fF = new FeedNull();
     }
 
     /**
@@ -87,47 +77,34 @@ public abstract class ControllerPID{
         this.fF = fF;
     }
 
-
-    /**
-     * Actual looped thread, this is what runs constantly.
-     */
-    private class ControlThread extends Thread {
-        @Override
-        public void run(){
-            double errorCurrent = getError();
-            double errorPrevious = errorCurrent;
-            double errorTotal = 0;
-            double forwardTerm = 0;
-            double timeLast;
-            while(isActive) {
-                //Update error values
-                errorPrevious = errorCurrent;
-                timeLast = System.currentTimeMillis();
-                errorCurrent = getError();
-                forwardTerm = fF.getFeedForward();
-                if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
-                //errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
-                //Find desired power adjustment
-                double u;
-                u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(System.currentTimeMillis()-timeLast) + kI*errorTotal + forwardTerm;
-                if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
-                synchronized (this) {setOutput(u);}
-                //Loop again in T ms
-                try {
-                    Thread.sleep((long) (T-(System.currentTimeMillis()-timeLast)));
-                 //Terminate on exception
-                } catch(InterruptedException e) {
-                    isActive = false;
-                    break;
-                }
+    @Override
+    protected void run() {
+        double errorCurrent = getError();
+        double errorPrevious = errorCurrent;
+        double errorTotal = 0;
+        double forwardTerm = 0;
+        double timeLast = System.currentTimeMillis();
+        while(isActive) {
+            //Update error values
+            errorPrevious = errorCurrent;
+            errorCurrent = getError();
+            forwardTerm = fF.getNextTerm();
+            if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
+            //errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
+            //Find desired power adjustment
+            double u;
+            u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(System.currentTimeMillis()-timeLast) + kI*errorTotal + forwardTerm;
+            if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
+            synchronized (this) {setOutput(u);}
+            //Loop again in T ms
+            try {
+                Thread.sleep((long) (T-(System.currentTimeMillis()-timeLast)));
+                //Terminate on exception
+            } catch(InterruptedException e) {
+                isActive = false;
+                break;
             }
-        }
-        //Controls termination mechanic
-        @Override
-        public void interrupt() {
-            StaticLog.addLine("PID Interupted At: " + Long.toString(System.currentTimeMillis()));
-            isActive = false;
-            super.interrupt();
+            timeLast = System.currentTimeMillis();
         }
     }
 
@@ -143,35 +120,11 @@ public abstract class ControllerPID{
     public abstract void setDesiredPosition(double position);
 
     /**
-     * Set the output of the system
-     * @param u Output value from control equation
-     */
-    public abstract void setOutput(double u);
-
-    /**
      * Obtains the current error of the system
      * @return Signed difference of desired position and current position
      */
     synchronized public double getError() {
         return this.desiredPosition - this.getCurrentPosition();
-    }
-
-    /**
-     * Starts a new instance of the control loop
-     */
-    synchronized public void startControl() {
-        StaticLog.addLine("i " + Long.toString(System.currentTimeMillis()));
-        isActive = true;
-        controlLoop = new ControlThread();
-        controlLoop.start();
-    }
-
-    /**
-     * Terminates the control loop
-     */
-    synchronized public void stopControl() {
-        isActive = false;
-        controlLoop.interrupt();
     }
 
 }

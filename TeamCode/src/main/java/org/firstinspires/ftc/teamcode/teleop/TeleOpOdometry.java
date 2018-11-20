@@ -3,18 +3,29 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.teamcode.StaticLog;
+import org.firstinspires.ftc.teamcode.navigation.Odometry;
+import org.firstinspires.ftc.teamcode.navigation.Position;
+import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
+import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
 @TeleOp(name="TeleOpMain")
-public class TeleOpMain extends LinearOpMode {
+public class TeleOpOdometry extends LinearOpMode {
 
     public DcMotor backLeft;
     public DcMotor backRight;
     public DcMotor frontLeft;
     public DcMotor frontRight;
 
+    private Odometry odometricTracker;
+
+    private long startTime;
 
     public void runOpMode() throws InterruptedException{
+
+        StaticLog.clearLog();;
 
         backLeft = hardwareMap.dcMotor.get("bl");
         backRight = hardwareMap.dcMotor.get("br");
@@ -25,6 +36,15 @@ public class TeleOpMain extends LinearOpMode {
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        Encoder left = new EncoderMA3(this.hardwareMap.analogInput.get("left"));
+        Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
+        Encoder right = new EncoderMA3(this.hardwareMap.analogInput.get("right"));
+        odometricTracker = new Odometry(left, center, right, 25);
+        Thread.sleep(1000);
+        odometricTracker.init();
+        Thread.sleep(1000);
+        odometricTracker.startTracking();
+        startTime = System.currentTimeMillis();
 
         waitForStart();
 
@@ -52,8 +72,20 @@ public class TeleOpMain extends LinearOpMode {
             frontLeft.setPower(FrontLeft);
             backLeft.setPower(BackLeft);
             backRight.setPower(BackRight);
+
             Thread.sleep(50);
         }
+    }
+
+    @Override
+    public void stop() {
+        odometricTracker.stopTracking();
+        StaticLog.addLine("Time Elapsed: " + Long.toString(System.currentTimeMillis()-startTime));
+        StaticLog.addLine("Ticks: " + Integer.toString(odometricTracker.getPositions().size()));
+        for(Position pos : odometricTracker.getPositions()) {
+            StaticLog.addLine("X: " + Double.toString(pos.x) + ", Y: " + Double.toString(pos.y) + ", φ: " + Double.toString(pos.phi));
+        }
+        super.stop();
     }
 
     float scaleInput(float dVal) {

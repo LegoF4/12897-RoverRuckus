@@ -67,10 +67,11 @@ public class Odometry {
             double leftPrior = 0;
             double centerPrior = 0;
             double rightPrior = 0;
-            StaticLog.addLine("-----Odometry Initiation Call-----");
-            StaticLog.addLine("Left Travel: " + Double.toString(leftPrior));
-            StaticLog.addLine("Center Travel: " + Double.toString(centerPrior));
-            StaticLog.addLine("Right Travel: " + Double.toString(rightPrior));
+            boolean obtuse = false;
+            if (obtuse)  StaticLog.addLine("-----Odometry Initiation Call-----");
+            if (obtuse) StaticLog.addLine("Left Travel: " + Double.toString(leftPrior));
+            if (obtuse) StaticLog.addLine("Center Travel: " + Double.toString(centerPrior));
+            if (obtuse) StaticLog.addLine("Right Travel: " + Double.toString(rightPrior));
             double leftCurrent;
             double centerCurrent;
             double rightCurrent;
@@ -83,7 +84,6 @@ public class Odometry {
             double deltaX;
             double deltaY;
             startTime = System.currentTimeMillis();
-            boolean obtuse = false;
             while (isActive) {
                 if (obtuse) StaticLog.addLine("-----Odometry Encoder Call-----");
                 synchronized (this) {
@@ -187,5 +187,9 @@ public class Odometry {
     synchronized public void stopTracking() {
         isActive = false;
         controlLoop.interrupt();
+    }
+
+    synchronized public List<Position> getPositions() {
+        return this.positions;
     }
 }

@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.controllers.Controller;
+import org.firstinspires.ftc.teamcode.controllers.ControllerMotionPlanning;
 import org.firstinspires.ftc.teamcode.controllers.ControllerPID;
 import org.firstinspires.ftc.teamcode.controllers.FeedForward;
 import org.firstinspires.ftc.teamcode.controllers.LinearMotionProfiler;
@@ -21,10 +23,12 @@ public class DriveTrain {
 
     public static final double acceleration = 6; // Measured in inches per second per second
     public static final double maxVelocity = 60; // Measured in inches per second
-
+    public static final double alpha = 6; // Measured in degrees per second per second
+    public static final double omega = 60; // Measured in degrees per second
 
     public volatile HardwareMap map;
     private volatile Odometry odometricTracker;
+    private volatile ControllerMotionPlanning controller;
 
     private volatile DcMotor rf;
     private volatile DcMotor lf;
@@ -35,6 +39,7 @@ public class DriveTrain {
     private volatile Encoder centerPod;
     private volatile Encoder rightPod;
 
+    private volatile boolean isDriving;
 
     public DriveTrain(HardwareMap map) {
         this.map = map;
@@ -52,46 +57,44 @@ public class DriveTrain {
 
         odometricTracker = new Odometry(leftPod,centerPod,rightPod, 25);
         this.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        this.isDriving = false;
     }
 
     /**
-     * Uses a PIDF controller to drive robot a fixed length on current bearing
+     * Uses a FF controller to drive robot a fixed length on current bearing
      * @param distance Distance to be travelled, in inches
      * @param power Relative power to travel at
      */
     public void lineDrive(double distance, double power) throws InterruptedException {
-        Position startPosition = odometricTracker.getPosition();
-        LinearMotionProfiler feedForward = new LinearMotionProfiler(25, distance, acceleration*power, maxVelocity);
-        ControllerPID controller = new ControllerPID(0.1,0,0,25, 0.05, 0.1, feedForward) {
-            @Override
-            public double getCurrentPosition() {
-                Position pos = odometricTracker.getPosition();
-                return 0;
-            }
-
-            @Override
-            public void setDesiredPosition(double position) {
-                this.desiredPosition = position;
-            }
-
+        LinearMotionProfiler feedForward = new LinearMotionProfiler(25, distance, acceleration*power, maxVelocity, 0.5, 0.5);
+        controller = new ControllerMotionPlanning(feedForward, 25, 0.05) {
             @Override
             public void setOutput(double u) {
                 setPower(u);
             }
         };
-        controller.setDesiredPosition(distance);
         controller.startControl();
-        Thread.sleep(((long) (distance*200)));
-        controller.stopControl();
     }
 
     /**
-     * Uses a PIDF controller to turn robot a fixed distance on current location
+     * Uses a FF controller to turn robot a fixed distance on current location
      * @param degrees Degrees to be turned, positive is CCW
      * @param power Relative power to turn at
      */
     public void degreeTurn(double degrees, double power) throws InterruptedException  {
+        LinearMotionProfiler feedForward = new LinearMotionProfiler(25, degrees, alpha*power, omega, 0.4, 0.2);
+        controller = new ControllerMotionPlanning(feedForward, 25, 0.05) {
+            @Override
+            public void setOutput(double u) {
+                setPower(u,u,-u,-u);
+            }
+        };
+        controller.startControl();
+    }
 
+    public synchronized boolean isDriving() {
+        return controller.isDone();
     }
 
     public synchronized void init() {
