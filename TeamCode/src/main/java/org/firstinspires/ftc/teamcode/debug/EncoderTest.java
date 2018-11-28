@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.debug;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
-import org.firstinspires.ftc.teamcode.StaticLog;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
 import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;

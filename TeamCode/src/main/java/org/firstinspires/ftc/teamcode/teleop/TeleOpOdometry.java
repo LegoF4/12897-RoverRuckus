@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.StaticLog;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;;
 import org.firstinspires.ftc.teamcode.navigation.Odometry;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;

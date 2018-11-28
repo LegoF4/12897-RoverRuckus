@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.utilities.hardware;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.StaticLog;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 
 /**
