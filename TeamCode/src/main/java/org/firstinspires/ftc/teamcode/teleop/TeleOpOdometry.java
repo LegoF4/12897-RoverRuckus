@@ -4,14 +4,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.StaticLog;
 import org.firstinspires.ftc.teamcode.navigation.Odometry;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
 import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 
-@TeleOp(name="TeleOpMain")
+@TeleOp(name="TeleOpOdometry")
 public class TeleOpOdometry extends LinearOpMode {
 
     public DcMotor backLeft;
@@ -31,10 +31,10 @@ public class TeleOpOdometry extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("br");
         frontLeft = hardwareMap.dcMotor.get("fl");
         frontRight = hardwareMap.dcMotor.get("fr");
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         Encoder left = new EncoderMA3(this.hardwareMap.analogInput.get("left"));
         Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
@@ -47,7 +47,7 @@ public class TeleOpOdometry extends LinearOpMode {
         startTime = System.currentTimeMillis();
 
         waitForStart();
-
+        int count = 0;
         while (opModeIsActive()) {
             float gamepad1LeftY = -gamepad1.left_stick_y;
             float gamepad1LeftX = gamepad1.left_stick_x;
@@ -68,10 +68,42 @@ public class TeleOpOdometry extends LinearOpMode {
             BackLeft = Range.clip(BackLeft, -1, 1);
             BackRight = Range.clip(BackRight, -1, 1);
 
+            if(gamepad1.dpad_left) {
+                FrontRight = -1;
+                BackRight = 1;
+                FrontLeft = -1;
+                BackLeft = 1;
+            } else if (gamepad1.dpad_right) {
+                FrontRight = 1;
+                BackRight = -1;
+                FrontLeft = 1;
+                BackLeft = -1;
+            } else if (gamepad1.dpad_up) {
+                FrontRight = 1;
+                BackRight = 1;
+                FrontLeft = -1;
+                BackLeft = -1;
+            } else if (gamepad1.dpad_down) {
+                FrontRight = -1;
+                BackRight = -1;
+                FrontLeft = 1;
+                BackLeft = 1;
+            }
+
             frontRight.setPower(FrontRight);
             frontLeft.setPower(FrontLeft);
             backLeft.setPower(BackLeft);
             backRight.setPower(BackRight);
+
+            if((count % 4) == 1) {
+                Position pos =  odometricTracker.getPosition();
+                telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
+                telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
+                telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
+                telemetry.update();
+            }
+
+            count++;
 
             Thread.sleep(50);
         }
@@ -80,11 +112,6 @@ public class TeleOpOdometry extends LinearOpMode {
     @Override
     public void stop() {
         odometricTracker.stopTracking();
-        StaticLog.addLine("Time Elapsed: " + Long.toString(System.currentTimeMillis()-startTime));
-        StaticLog.addLine("Ticks: " + Integer.toString(odometricTracker.getPositions().size()));
-        for(Position pos : odometricTracker.getPositions()) {
-            StaticLog.addLine("X: " + Double.toString(pos.x) + ", Y: " + Double.toString(pos.y) + ", φ: " + Double.toString(pos.phi));
-        }
         super.stop();
     }
 

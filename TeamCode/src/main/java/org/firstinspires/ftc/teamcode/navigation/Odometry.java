@@ -13,8 +13,8 @@ import java.util.List;
 public class Odometry {
 
     //Constants
-    public static double wheelCircumference = 4 * Math.PI;; //In inches
-    public static double robotDiameter = 9.2; //In inches
+    public static double wheelCircumference = 1.88976 * Math.PI;; //In inches
+    public static double robotDiameter = 0.989*13.722; //In inches
 
     public long freq; //In Hertz
     private volatile Encoder left;

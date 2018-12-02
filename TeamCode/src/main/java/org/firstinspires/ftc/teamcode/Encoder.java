@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+
 public class Encoder {
 
     String encoderName;

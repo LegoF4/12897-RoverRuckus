@@ -4,11 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
-@TeleOp(name="TeleOpMain")
-public class TeleOpMain extends LinearOpMode {
+@TeleOp(name="TeleOFix")
+public class TeleOpFixed extends LinearOpMode {
 
     public DcMotor backLeft;
     public DcMotor backRight;
@@ -28,27 +27,13 @@ public class TeleOpMain extends LinearOpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
-        int count = 0;
+
         while (opModeIsActive()) {
-            float gamepad1LeftY = -gamepad1.left_stick_y;
-            float gamepad1LeftX = gamepad1.left_stick_x;
-            float gamepad1RightX = gamepad1.right_stick_x;
 
-            float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-            float BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-
-            FrontRight = -scaleInput(FrontRight);
-            FrontLeft = -scaleInput(FrontLeft);
-            BackRight = -scaleInput(BackRight);
-            BackLeft = -scaleInput(BackLeft);
-
-            FrontRight = Range.clip(FrontRight, -1, 1);
-            FrontLeft = Range.clip(FrontLeft, -1, 1);
-            BackLeft = Range.clip(BackLeft, -1, 1);
-            BackRight = Range.clip(BackRight, -1, 1);
-
+            float FrontLeft;
+            float FrontRight;
+            float BackRight;
+            float BackLeft;
 
             if(gamepad1.dpad_left) {
                 FrontRight = -1;
@@ -70,6 +55,11 @@ public class TeleOpMain extends LinearOpMode {
                 BackRight = -1;
                 FrontLeft = 1;
                 BackLeft = 1;
+            } else {
+                FrontRight = 0;
+                BackRight = 0;
+                FrontLeft = 0;
+                BackLeft = 0;
             }
 
             frontRight.setPower(FrontRight);
@@ -82,7 +72,6 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addLine("Back Right: " + Double.toString(BackRight));
             telemetry.addLine("Back Left: " + Double.toString(BackLeft));
             telemetry.update();
-
             Thread.sleep(50);
         }
     }
