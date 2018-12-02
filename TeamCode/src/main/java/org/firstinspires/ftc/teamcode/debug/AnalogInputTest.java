@@ -12,14 +12,20 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 @TeleOp(name = "Analog Input Test")
 public class AnalogInputTest extends LinearOpMode {
 
-    AnalogInput input;
+    AnalogInput inputC;
+    AnalogInput inputL;
+    AnalogInput inputR;
 
     @Override
     public void runOpMode() throws InterruptedException{
-        input = hardwareMap.get(AnalogInput.class, "center");
+        inputC = hardwareMap.get(AnalogInput.class, "center");
+        inputL = hardwareMap.get(AnalogInput.class, "left");
+        inputR = hardwareMap.get(AnalogInput.class, "right");
         waitForStart();
         while(opModeIsActive()) {
-            telemetry.addLine("Value: " + Double.toString(input.getVoltage()));
+            telemetry.addLine("Left: " + Double.toString(inputL.getVoltage()));
+            telemetry.addLine("Center: " + Double.toString(inputC.getVoltage()));
+            telemetry.addLine("Right: " + Double.toString(inputR.getVoltage()));
             telemetry.update();
             Thread.sleep(50);
         }
