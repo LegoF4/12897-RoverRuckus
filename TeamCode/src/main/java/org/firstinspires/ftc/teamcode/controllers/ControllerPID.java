@@ -83,12 +83,13 @@ public abstract class ControllerPID extends Controller {
         double errorPrevious = errorCurrent;
         double errorTotal = 0;
         double forwardTerm = 0;
-        double timeLast = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
+        double timeLast = startTime;
         while(isActive) {
             //Update error values
             errorPrevious = errorCurrent;
             errorCurrent = getError();
-            forwardTerm = fF.getNextTerm();
+            forwardTerm = fF.getForwardTerm(System.currentTimeMillis()-startTime);
             if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
             //errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
             //Find desired power adjustment

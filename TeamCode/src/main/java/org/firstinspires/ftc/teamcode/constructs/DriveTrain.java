@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.controllers.ControllerPID;
 import org.firstinspires.ftc.teamcode.controllers.FeedForward;
 import org.firstinspires.ftc.teamcode.controllers.LinearMotionProfiler;
 import org.firstinspires.ftc.teamcode.navigation.Odometry;
-import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.hardware.Encoder;
 import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 
@@ -21,14 +20,26 @@ import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 
 public class DriveTrain {
 
-    public static final double acceleration = 6; // Measured in inches per second per second
-    public static final double maxVelocity = 60; // Measured in inches per second
+    public static final double acceleration = 12; // Measured in inches per second per second
+    public static final double maxVelocity = 18; // Measured in inches per second
     public static final double alpha = 6; // Measured in degrees per second per second
     public static final double omega = 60; // Measured in degrees per second
 
+    public static final double linearKP = 0.15; //P term for linear driving PID controller
+    public static final double linearKD = 0; //D term for linear driving PID controller
+    public static final double linearKI = 0; //I term for linear driving PID controller
+    public static final double linearKA = 0.05; //A term for linear driving FF controller
+    public static final double linearKV = 0.01; //V term for linear driving FF controller
+
+    public static final double angularKP = 0.1; //P term for angular driving PID controller
+    public static final double angularKD = 0; //D term for angular driving PID controller
+    public static final double angularKI = 0; //I term for angular driving PID controller
+    public static final double angularKA = 0; //A term for angular driving FF controller
+    public static final double angularKV = 0; //V term for angular driving FF controller
+
     public volatile HardwareMap map;
     private volatile Odometry odometricTracker;
-    private volatile ControllerMotionPlanning controller;
+    private volatile Controller controller;
 
     private volatile DcMotor rf;
     private volatile DcMotor lf;
@@ -67,8 +78,18 @@ public class DriveTrain {
      * @param power Relative power to travel at
      */
     public void lineDrive(double distance, double power) throws InterruptedException {
-        LinearMotionProfiler feedForward = new LinearMotionProfiler(25, distance, acceleration*power, maxVelocity, 0.5, 0.5);
-        controller = new ControllerMotionPlanning(feedForward, 25, 0.05) {
+        FeedForward feedForward = new LinearMotionProfiler(distance, acceleration*power, maxVelocity, linearKA, linearKV);
+        controller = new ControllerPID(linearKP, linearKD, linearKI, 25, 0.02, 0.8, feedForward) {
+            @Override
+            public double getCurrentPosition() {
+                return 0;
+            }
+
+            @Override
+            public void setDesiredPosition(double position) {
+
+            }
+
             @Override
             public void setOutput(double u) {
                 setPower(u);
@@ -83,7 +104,7 @@ public class DriveTrain {
      * @param power Relative power to turn at
      */
     public void degreeTurn(double degrees, double power) throws InterruptedException  {
-        LinearMotionProfiler feedForward = new LinearMotionProfiler(25, degrees, alpha*power, omega, 0.4, 0.2);
+        LinearMotionProfiler feedForward = new LinearMotionProfiler(degrees, alpha*power, omega, angularKA, angularKV);
         controller = new ControllerMotionPlanning(feedForward, 25, 0.05) {
             @Override
             public void setOutput(double u) {
@@ -93,15 +114,12 @@ public class DriveTrain {
         controller.startControl();
     }
 
-    public synchronized boolean isDriving() {
-        return controller.isDone();
-    }
-
     public synchronized void init() {
         odometricTracker.init();
     }
 
     public synchronized void stop() {
+        controller.stopControl();
         odometricTracker.stopTracking();
     }
 

@@ -113,7 +113,7 @@ public class Odometry {
                 phiCurrent = (Math.PI/180)*(phiCurrent + deltaPhi*0.5);
                 if (obtuse) StaticLog.addLine("φ Current: " + Double.toString(phiCurrent));
 
-                deltaX = deltaLinear*Math.cos(phiCurrent) + deltaCenter*Math.sin(phiCurrent);
+                deltaX = deltaLinear*Math.cos(phiCurrent) - deltaCenter*Math.sin(phiCurrent);
                 if (obtuse) StaticLog.addLine("ΔX: " + Double.toString(deltaX));
                 deltaY = deltaLinear*Math.sin(phiCurrent) + deltaCenter*Math.cos(phiCurrent);
                 if (obtuse) StaticLog.addLine("ΔY: " + Double.toString(deltaY));

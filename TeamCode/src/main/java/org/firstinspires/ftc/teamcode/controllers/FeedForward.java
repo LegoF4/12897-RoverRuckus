@@ -6,5 +6,5 @@ package org.firstinspires.ftc.teamcode.controllers;
 
 public interface FeedForward {
 
-    public double getNextTerm();
+    public double getForwardTerm(double elapsedTime);
 }

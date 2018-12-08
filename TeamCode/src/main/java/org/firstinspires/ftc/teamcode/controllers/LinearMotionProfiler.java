@@ -13,70 +13,56 @@ public class LinearMotionProfiler implements FeedForward {
     private double kA = 1;
     private double kV = 1;
 
-    private double frequency; //Hz
-    private long T; //Milliseconds
     private double distance; //Inches
     private double accel; // Inches per second per second
     private double maxVel; // Inches per second
 
-    private double[] path;
-    private int size;
-    private volatile int index; //Current index of robot on path
+    private boolean isTriangular;
+    private double totalTime;
+    private double threshold1;
+    private double threshold2;
+
 
     /**
      *
-     * @param frequency Hz
      * @param distance Positive, in inches
      * @param accel Inches per second per second
      * @param maxVel Inches per second
      */
-    public LinearMotionProfiler(double frequency, double distance, double accel, double maxVel, double kA, double kV) {
-        this.frequency = frequency;
-        this.T = (long) (1000/frequency); //Converts Hz to ms
+    public LinearMotionProfiler(double distance, double accel, double maxVel, double kA, double kV) {
         this.distance = Math.abs(distance);
         this.accel = accel;
         this.maxVel = maxVel;
-        this.index = 0;
         this.kA = kA;
         this.kV = kV;
-
-        double criticalLength = 2*(maxVel*maxVel)/(accel);
-        double tickAccel = (1/frequency)*accel;
-        int criticalTicks = (int) (frequency*criticalLength);
-        if(distance > distanceThreshold) {
-            if(distance <= (criticalLength) ) {
-                this.size = (int) Math.sqrt(2*distance/accel);
-                path = new double[this.size];
-                for (int i = 0; i <= this.size/2; i++) {
-                    path[i] = kA*accel + kV*i*tickAccel;
-                }
-                for (int i = (int)this.size/2; i < 2*this.size/2; i++) {
-                    path[i] = -kA*accel +kV*((this.size/2)*tickAccel - i*tickAccel);
-                }
+        this.isTriangular = true;
+        totalTime = 0;
+        if(this.distance > distanceThreshold) {
+            double criticalLength = 2*(maxVel*maxVel)/(accel);
+            if(this.distance > criticalLength) this.isTriangular = false;
+            if(isTriangular) {
+                threshold1 = 1000*Math.sqrt(2*this.distance/accel);
+                totalTime = 2*threshold1;
+                threshold2 = 0;
             } else {
-                this.size = (int) (criticalTicks+((distance-criticalLength)/maxVel));
-                path = new double[this.size];
-                for (int i = 0; i <= criticalTicks/2; i++) {
-                    path[i] = kA*accel + kV*i*tickAccel;
-                }
-                for (int i = 0; i <= criticalTicks/2; i++) {
-                    path[i] = kV*maxVel;
-                }
-                for (int i = this.size - criticalTicks; i < this.size; i++) {
-                    path[i] = -kA*accel +kV*((path.length/2)*tickAccel - i*tickAccel);
-                }
+                threshold1 = 1000*Math.sqrt(criticalLength/accel);
+                threshold2 = threshold1 + 1000*(this.distance-criticalLength)/maxVel;
+                totalTime = threshold2 + threshold1;
             }
         }
-        this.size = path.length;
     }
 
     @Override
-    public double getNextTerm() {
-        index += 1;
-        if ((index+1)>size) {
+    public double getForwardTerm(double elapsedTime) {
+        if(elapsedTime > totalTime || elapsedTime < 0) {
             return 0;
+        } else if (isTriangular) {
+            if(elapsedTime < threshold1) return kA*accel;
+            else return -kA*accel;
         } else {
-            return path[index];
+            if(elapsedTime < threshold1) return kA*accel;
+            else if (elapsedTime > threshold1 && elapsedTime < threshold2) return kV*maxVel;
+            else return -kA*accel;
         }
     }
 }

@@ -26,7 +26,7 @@ public abstract class ControllerMotionPlanning extends Controller {
         double power;
         while(isActive) {
             synchronized (this) {
-                power = fF.getNextTerm();
+                power = fF.getForwardTerm();
                 setOutput(power);
             }
             if(power == 0) {
