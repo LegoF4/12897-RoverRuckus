@@ -10,8 +10,8 @@ import java.util.List;
 public class LinearMotionProfiler implements FeedForward {
 
     public static final double distanceThreshold = 0.5; //Distance threshold, in inches
-    private double kA = 1;
-    private double kV = 1;
+    private double kA;
+    private double kV;
 
     private double distance; //Inches
     private double accel; // Inches per second per second
@@ -38,14 +38,14 @@ public class LinearMotionProfiler implements FeedForward {
         this.isTriangular = true;
         totalTime = 0;
         if(this.distance > distanceThreshold) {
-            double criticalLength = 2*(maxVel*maxVel)/(accel);
+            double criticalLength = (maxVel*maxVel)/(accel);
             if(this.distance > criticalLength) this.isTriangular = false;
             if(isTriangular) {
-                threshold1 = 1000*Math.sqrt(2*this.distance/accel);
+                threshold1 = 1000*Math.sqrt(this.distance/accel);
                 totalTime = 2*threshold1;
                 threshold2 = 0;
             } else {
-                threshold1 = 1000*Math.sqrt(criticalLength/accel);
+                threshold1 = 1000*maxVel/accel;
                 threshold2 = threshold1 + 1000*(this.distance-criticalLength)/maxVel;
                 totalTime = threshold2 + threshold1;
             }

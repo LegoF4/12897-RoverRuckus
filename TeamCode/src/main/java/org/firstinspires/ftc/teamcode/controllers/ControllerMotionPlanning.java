@@ -23,7 +23,7 @@ public abstract class ControllerMotionPlanning extends Controller {
     @Override
     protected void run() {
         long timeLast = System.currentTimeMillis();
-        double power;
+        double power; /**
         while(isActive) {
             synchronized (this) {
                 power = fF.getForwardTerm();
@@ -42,7 +42,7 @@ public abstract class ControllerMotionPlanning extends Controller {
                 break;
             }
             timeLast = System.currentTimeMillis();
-        }
+        }**/
     }
 
     public synchronized boolean isDone() {

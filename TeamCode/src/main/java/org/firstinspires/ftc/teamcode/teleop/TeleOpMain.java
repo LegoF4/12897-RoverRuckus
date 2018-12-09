@@ -31,7 +31,7 @@ public class TeleOpMain extends LinearOpMode {
         int count = 0;
         while (opModeIsActive()) {
             float gamepad1LeftY = -gamepad1.left_stick_y;
-            float gamepad1LeftX = gamepad1.left_stick_x;
+            float gamepad1LeftX = -gamepad1.left_stick_x;
             float gamepad1RightX = gamepad1.right_stick_x;
 
             float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;

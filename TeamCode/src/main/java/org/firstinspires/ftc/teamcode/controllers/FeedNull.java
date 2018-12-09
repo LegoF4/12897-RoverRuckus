@@ -6,7 +6,5 @@ package org.firstinspires.ftc.teamcode.controllers;
 
 public class FeedNull implements FeedForward {
 
-    public double getNextTerm() {
-        return 0;
-    }
+    public double getForwardTerm(double elapsedTime) {return 0;}
 }

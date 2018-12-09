@@ -10,6 +10,8 @@
 
 package org.firstinspires.ftc.teamcode.controllers;
 
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+
 /**
  * Created by LeviG on 11/20/2017.
  */
@@ -85,21 +87,29 @@ public abstract class ControllerPID extends Controller {
         double forwardTerm = 0;
         long startTime = System.currentTimeMillis();
         double timeLast = startTime;
+        long sleepTime;
         while(isActive) {
             //Update error values
             errorPrevious = errorCurrent;
             errorCurrent = getError();
             forwardTerm = fF.getForwardTerm(System.currentTimeMillis()-startTime);
+            StaticLog.addLine("Forward is: " + Double.toString(forwardTerm));
             if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
-            //errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
+
+            StaticLog.addLine("Error is: " + Double.toString(errorCurrent));
+            StaticLog.addLine("Total Error is: " + Double.toString(errorTotal));
+            StaticLog.addLine("Previous Error is: " + Double.toString(errorPrevious));//errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
             //Find desired power adjustment
             double u;
-            u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(System.currentTimeMillis()-timeLast) + kI*errorTotal + forwardTerm;
+            u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(T) + kI*errorTotal + forwardTerm;
             if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
             synchronized (this) {setOutput(u);}
             //Loop again in T ms
             try {
-                Thread.sleep((long) (T-(System.currentTimeMillis()-timeLast)));
+                sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
+                if(sleepTime > 0) {
+                    Thread.sleep(sleepTime);
+                }
                 //Terminate on exception
             } catch(InterruptedException e) {
                 isActive = false;
@@ -118,7 +128,9 @@ public abstract class ControllerPID extends Controller {
      * Set the desired position for the system
      * @param position Position intended
      */
-    public abstract void setDesiredPosition(double position);
+    synchronized public void setDesiredPosition(double position) {
+        this.desiredPosition = position;
+    }
 
     /**
      * Obtains the current error of the system
