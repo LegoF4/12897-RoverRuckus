@@ -17,6 +17,7 @@ public class Odometry {
     public static double robotDiameter = 0.989*13.722; //In inches
 
     public long freq; //In Hertz
+    public double T; //In ms
     private volatile Encoder left;
     private volatile Encoder center;
     private volatile Encoder right;
@@ -46,6 +47,7 @@ public class Odometry {
         this.x0 = x;
         this.y0 = y;
         this.phi0 = phi;
+        this.T = (long) (1000/freq); //Converts Hz to ms
         positions = new ArrayList<Position>();
         positions.add(new Position (x,y,phi,System.currentTimeMillis()));
 
@@ -83,8 +85,11 @@ public class Odometry {
             double deltaLinear;
             double deltaX;
             double deltaY;
+            long timeLast;
+            long sleepTime;
             startTime = System.currentTimeMillis();
             while (isActive) {
+                timeLast = System.currentTimeMillis();
                 if (obtuse) StaticLog.addLine("-----Odometry Encoder Call-----");
                 synchronized (this) {
                     leftCurrent = wheelCircumference * left.getPosition() / 360;
@@ -128,11 +133,14 @@ public class Odometry {
                     if (obtuse)StaticLog.addLine("x(t): " + Double.toString(xT));
                     yT += deltaY;
                     if (obtuse)StaticLog.addLine("y(t): " + Double.toString(yT));
-                    positions.add(new Position(xT, yT, phiT, System.currentTimeMillis()));
+                    positions.add(new Position(xT, yT, phiT, timeLast));
                 }
 
                 try {
-                    Thread.sleep(1000/freq);
+                    sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
+                    if(sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
                 } catch (InterruptedException e) {
                     synchronized (this) {
                         isActive = false;

@@ -25,11 +25,12 @@ public class LineDrive extends LinearOpMode {
         robot.driveTrain.startOdometry();
         boolean isLive = true;
         robot.driveTrain.degreeTurn(360,0.5);
-        Thread.sleep(5000);
+        Thread.sleep(10000);
 
-        robot.driveTrain.stopOdometry();
-        StaticLog.addLine("Ticks Past: " + Integer.toString(robot.driveTrain.odometricTracker.getPositions().size()));
-        StaticLog.addLine("Elapsed Time: " + Long.toString(System.currentTimeMillis()-startTime));
+        robot.driveTrain.stop();
+        //StaticLog.addLine("Controller Ticks Past: " + Integer.toString(robot.driveTrain.ticks));
+        //StaticLog.addLine("Odometry Ticks Past: " + Integer.toString(robot.driveTrain.odometricTracker.getPositions().size()));
+        //StaticLog.addLine("Elapsed Time: " + Long.toString(System.currentTimeMillis()-startTime));
         /**while(this.opModeIsActive()) {
             if(isLive) {
                 Position pos = robot.driveTrain.getPosition();

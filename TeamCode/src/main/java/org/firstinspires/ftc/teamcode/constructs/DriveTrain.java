@@ -33,11 +33,11 @@ public class DriveTrain {
     public static final double linearKA = 0.05; //A term for linear driving FF controller
     public static final double linearKV = 0.01; //V term for linear driving FF controller
 
-    public static final double angularKP = 0.1; //P term for angular driving PID controller
+    public static final double angularKP = 0.004; //P term for angular driving PID controller
     public static final double angularKD = 0; //D term for angular driving PID controller
     public static final double angularKI = 0; //I term for angular driving PID controller
-    public static final double angularKA = 0; //A term for angular driving FF controller
-    public static final double angularKV = 0; //V term for angular driving FF controller
+    public static final double angularKA = 1; //A term for angular driving FF controller
+    public static final double angularKV = 1; //V term for angular driving FF controller
 
     public volatile HardwareMap map;
     public volatile Odometry odometricTracker;
@@ -82,12 +82,13 @@ public class DriveTrain {
      * @param power Relative power to travel at
      */
     public void lineDrive(final double distance, double power) throws InterruptedException {
-        FeedForward feedForward = new LinearMotionProfiler(distance, acceleration*power, maxVelocity, linearKA, linearKV);
+        final double powerUsed = power;
+        FeedForward feedForward = new LinearMotionProfiler(distance, acceleration, maxVelocity, linearKA, linearKV);
         final Position startPos = odometricTracker.getPosition();
         final double cosPhi = Math.cos(((Math.PI)/(180))*startPos.phi);
         final double sinPhi = Math.sin(((Math.PI)/(180))*startPos.phi);
         final Position endPos = new Position(startPos.x+distance*cosPhi, startPos.y+distance*sinPhi, startPos.phi, System.currentTimeMillis());
-        controller = new ControllerPID(linearKP, linearKD, linearKI, 25, 0.02, 0.5, feedForward) {
+        controller = new ControllerPID(linearKP, linearKD, linearKI, 100, 0.02, 0.5, feedForward) {
             @Override
             public double getCurrentPosition() {
                 Position currentPos = odometricTracker.getPosition();
@@ -100,6 +101,7 @@ public class DriveTrain {
 
             @Override
             public void setOutput(double u) {
+                u = powerUsed*u;
                 setPower(u);
             }
         };
@@ -107,17 +109,25 @@ public class DriveTrain {
         controller.startControl();
     }
 
+    public volatile int ticks;
+
+    public void degreeTurn(double degree, double power) throws InterruptedException{
+        degreeTurn(degree, power, angularKP, angularKI, angularKD, angularKA, angularKV);
+    }
+
     /**
      * Uses a FF controller to turn robot a fixed distance on current location
      * @param degrees Degrees to be turned, positive is CCW
      * @param power Relative power to turn at
      */
-    public void degreeTurn(double degrees, double power) throws InterruptedException  {
-        FeedForward feedForward = new LinearMotionProfiler(degrees, alpha*power, omega, angularKA, angularKV);
+    public void degreeTurn(double degrees, double power, double kP, double kI, double kD, double kA, double kV) throws InterruptedException  {
+        ticks = 0;
+        final double powerUsed = power;
+        FeedForward feedForward = new LinearMotionProfiler(degrees, alpha, omega, angularKA, angularKV);
         StaticLog.addLine("Feed Forward initiated");
         final Position startPos = odometricTracker.getPosition();
         StaticLog.addLine("Initial position retrieved");
-        controller = new ControllerPID(angularKP, angularKD, angularKI, 25, 0.02, 1, feedForward) {
+        controller = new ControllerPID(kP, kD, kI, 100, 0.02, 1, feedForward) {
             @Override
             public double getCurrentPosition() {
                 return getPosition().phi;
@@ -126,6 +136,8 @@ public class DriveTrain {
             @Override
             public void setOutput(double u) {
                 StaticLog.addLine("Output is: " + Double.toString(u));
+                //ticks++;
+                u = powerUsed*u;
                 //setPower(u,u,-u,-u);
             }
         };
@@ -139,7 +151,7 @@ public class DriveTrain {
     }
 
     public synchronized void stop() {
-        controller.stopControl();
+        if(controller != null) controller.stopControl();
         this.stopOdometry();
         setPower(0);
     }
@@ -153,6 +165,10 @@ public class DriveTrain {
         //StaticLog.addLine("Ticks Past: " + Integer.toString(odometricTracker.getPositions().size()));
         //StaticLog.addLine("Elapsed Time: " + Long.toString(System.currentTimeMillis()-startTime));
         odometricTracker.stopTracking();
+    }
+
+    public synchronized void stopController() {
+        if(controller != null) controller.stopControl();
     }
 
     public synchronized Position getPosition() {
