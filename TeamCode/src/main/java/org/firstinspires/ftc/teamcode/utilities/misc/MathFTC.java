@@ -102,5 +102,9 @@ public class MathFTC {
             return 0;
     }
 
+    public static double distance(double xT, double yT, double xF, double yF, double cos, double sin) {
+        return (xF - xT)*cos + (yF - yT)*sin;
+    }
+
 
 }

@@ -8,34 +8,27 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 @TeleOp(name="LiftTest")
 public class LiftTest extends LinearOpMode {
 
-    public DcMotor lift1;
-    public DcMotor lift2;
+    public DcMotor v1;
+    public DcMotor v2;
 
     public void runOpMode() {
 
-        lift1 = hardwareMap.dcMotor.get("l1");
-        lift2 = hardwareMap.dcMotor.get("l2");
+        v1 = hardwareMap.dcMotor.get("v1");
+        v2 = hardwareMap.dcMotor.get("v2");
+        v1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        v2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
 
         while (opModeIsActive()) {
-
-            if (gamepad1.a) {
-                lift1.setPower(1);
-                lift2.setPower(-1);
-            } else if (!gamepad1.a) {
-                lift1.setPower(0);
-                lift2.setPower(0);
+            if(gamepad1.left_stick_y > 0.1) {
+                v1.setPower(Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
+                v2.setPower(-Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
             }
-
-            if (gamepad1.b) {
-                lift1.setPower(-1);
-                lift2.setPower(1);
-            } else if (!gamepad1.b) {
-                lift1.setPower(0);
-                lift2.setPower(0);
+            else {
+                v1.setPower(0.5*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2));
+                v2.setPower(.5*-Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2));
             }
-
         }
     }
 }

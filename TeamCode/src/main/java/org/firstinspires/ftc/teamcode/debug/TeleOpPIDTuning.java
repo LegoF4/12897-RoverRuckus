@@ -86,6 +86,7 @@ public class TeleOpPIDTuning extends LinearOpMode {
             if(gamepad1.left_trigger > 0.5 && !stop) {
                 stop = true;
                 robot.driveTrain.stopController();
+                Thread.sleep(20);
                 robot.driveTrain.setPower(0);
             } else if (gamepad1.left_trigger > 0.5 && stop) {
                 stop = false;
@@ -99,6 +100,7 @@ public class TeleOpPIDTuning extends LinearOpMode {
             telemetry.addLine("P: " +  String.format("%.6f", kP) + "  I: " + String.format("%.6f", kI) + "  P: " + String.format("%.6f", kD));
             telemetry.addLine("A: " +  String.format("%.6f", kA) + "  V: " + String.format("%.6f", kV));
             telemetry.addLine("Increment: " + Double.toString(increment) + " Index: " + Integer.toString(index));
+            telemetry.addLine("φ: " + String.format("%.3f", robot.driveTrain.getPosition().phi));
             telemetry.update();
             Thread.sleep(50);
         }

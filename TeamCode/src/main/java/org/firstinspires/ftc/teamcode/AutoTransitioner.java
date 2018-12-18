@@ -41,7 +41,7 @@ public class AutoTransitioner extends Thread {
                         reset(); //Reset the AutoTransitioner
                     }
                 }
-                Thread.sleep(50); //Sleep 50 seconds to minimize performance impact to the rest of your program
+                Thread.sleep(500); //Sleep 50 seconds to minimize performance impact to the rest of your program
             }
         } catch (InterruptedException ex) {
             Log.e(FtcRobotControllerActivity.TAG, "AutoTransitioner shutdown, thread interrupted");
