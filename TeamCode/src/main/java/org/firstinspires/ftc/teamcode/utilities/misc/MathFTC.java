@@ -20,6 +20,9 @@ import static java.lang.Math.sqrt;
 
 public class MathFTC {
 
+    public static final double cos45 = 0.70710678118654752440084436210485d;
+    public static final double sin45 = 0.70710678118654752440084436210485d;
+
     public static double norm(List<Double> start) {
         double norm = 0;
         for (Double val : start) {

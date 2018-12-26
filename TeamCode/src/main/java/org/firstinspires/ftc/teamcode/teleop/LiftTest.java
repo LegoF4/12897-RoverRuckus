@@ -11,24 +11,28 @@ public class LiftTest extends LinearOpMode {
     public DcMotor v1;
     public DcMotor v2;
 
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
 
-        v1 = hardwareMap.dcMotor.get("v1");
-        v2 = hardwareMap.dcMotor.get("v2");
+        v1 = hardwareMap.dcMotor.get("vl");
+        v2 = hardwareMap.dcMotor.get("vr");
         v1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         v2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
 
         while (opModeIsActive()) {
+            double power;
             if(gamepad1.left_stick_y > 0.1) {
-                v1.setPower(Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
-                v2.setPower(-Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
+                power = Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2);
             }
             else {
-                v1.setPower(0.5*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2));
-                v2.setPower(.5*-Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2));
+                power = 0.4*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2);
             }
+            v1.setPower(power);
+            v2.setPower(-power);
+            telemetry.addLine("Power: " + Double.toString(power));
+            telemetry.update();
+            Thread.sleep(50);
         }
     }
 }

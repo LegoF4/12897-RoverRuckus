@@ -20,8 +20,8 @@ public class Lift {
     private DcMotor v2;
 
     public Lift(HardwareMap map) {
-        v1 = map.get(DcMotor.class,"v1");
-        v2 = map.get(DcMotor.class,"v2");
+        v1 = map.get(DcMotor.class,"vl");
+        v2 = map.get(DcMotor.class,"vr");
     }
 
     public synchronized void setPower(double power) {

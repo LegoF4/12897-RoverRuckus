@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
 @TeleOp(name="TeleOpMain")
@@ -14,6 +13,10 @@ public class TeleOpMain extends LinearOpMode {
     public DcMotor backRight;
     public DcMotor frontLeft;
     public DcMotor frontRight;
+    public DcMotor vl;
+    public DcMotor vr;
+    public DcMotor hl;
+    public DcMotor hr;
 
 
     public void runOpMode() throws InterruptedException{
@@ -22,10 +25,18 @@ public class TeleOpMain extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("br");
         frontLeft = hardwareMap.dcMotor.get("fl");
         frontRight = hardwareMap.dcMotor.get("fr");
+        vl = hardwareMap.get(DcMotor.class,"vl");
+        vr = hardwareMap.get(DcMotor.class,"vr");
+        hl = hardwareMap.get(DcMotor.class,"hl");
+        hr = hardwareMap.get(DcMotor.class,"hr");
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        vl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        vr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
         int count = 0;
@@ -70,6 +81,22 @@ public class TeleOpMain extends LinearOpMode {
                 BackRight = -1;
                 FrontLeft = 1;
                 BackLeft = 1;
+            }
+
+            double liftPower = gamepad1.left_trigger > 0.05 ? gamepad1.left_trigger : -1*gamepad1.right_trigger;
+            liftPower = 0.4*Math.signum(liftPower)*Math.pow(liftPower,2);
+            vl.setPower(liftPower);
+            vr.setPower(-liftPower);
+
+            if(gamepad1.a) {
+                hl.setPower(0.2);
+                hr.setPower(-0.2);
+            } else if (gamepad1.y) {
+                hl.setPower(-0.2);
+                hr.setPower(0.2);
+            } else {
+                hl.setPower(0);
+                hr.setPower(0);
             }
 
             frontRight.setPower(FrontRight);

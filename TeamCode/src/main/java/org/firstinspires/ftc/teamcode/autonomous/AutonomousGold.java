@@ -1,12 +1,18 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.disnodeteam.dogecv.CameraViewDisplay;
+import com.disnodeteam.dogecv.DogeCV;
+import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.AutoTransitioner;
 import org.firstinspires.ftc.teamcode.constructs.Robot;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+import org.opencv.core.Rect;
+import org.opencv.core.Size;
 
 /**
  * Created by LeviG on 12/16/2018.
@@ -15,35 +21,110 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 public class AutonomousGold extends LinearOpMode {
 
     Robot robot;
+    Thread odTel;
+    private GoldDetector detector;
 
     @Override
     public void runOpMode() throws InterruptedException{
+        //Clears log of previous contents
         StaticLog.clearLog();
+        //Instantiates and initiates hardware
         robot = new Robot(hardwareMap);
         robot.init();
-        robot.lift.setPower(0.3);
+        //Sets power for steady-state hanging
+        //robot.lift.setPower(-0.28);
+        //Sets up gold detector
+        detector = new GoldDetector();
+        detector.setAdjustedSize(new Size(480, 270));
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        detector.useDefaults();// Optional Tuning
+
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.PERFECT_AREA; // Can also be PERFECT_AREA
+        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.perfectAreaScorer.weight = 0.05;
+        //detector.disable();
+        //Starts automatic transition thread
+       // AutoTransitioner.transitionOnStop(this, "TeleOpMain");
+        //Waits for game start
         waitForStart();
-        robot.lift.descend();
+        /**
+        //Lowers robot
+        robot.lift.setPower(0.1);
         Thread.sleep(4000);
-        robot.lift.stopMoving();
+        robot.lift.setPower(0);
         Thread.sleep(200);
+         //**/
         robot.driveTrain.startOdometry();
+        odTel = new OdometryTel();
+        odTel.start();
         //Insert de-hook code here
-
         //Straighten robot
-        turnDegrees(0,0.3,0.15);
+        turnDegrees(90,0.2,0.1);
+        //driveInches(24, 0.2, 0.1);
+        //strafeInches(10, 0.3, 0.28);
         //Back off
-        driveInches((-18+robot.driveTrain.getPosition().x), 0.4, 0.15);
+        //driveInches((21-robot.driveTrain.getPosition().x), 0.2, 0.1);
         //Turn right
-        turnDegrees(-90,0.3,0.15);
+        //turnDegrees(90,0.2,0.15);
+        //boolean goldFound = false;
         //Back off to 1st sample
-        driveInches((-21+robot.driveTrain.getPosition().y), 0.4, 0.15);
+        //driveInches((-21+robot.driveTrain.getPosition().y), 0.4, 0.15);
+        /**
+        //Starts detector
+        int counts = 0;
+        while(!goldFound && opModeIsActive() && counts < 3) {
+            detector.enable();
+            Thread.sleep(1000);
+            Rect foundRect = detector.getFoundRect();
+            detector.disable();
+            if(foundRect != null) {
+                if(foundRect.area() > 4000) {
+                    goldFound = true;
+                    break;
+                }
+            }
+            driveInches(21,0.4,0.15);
+            Thread.sleep(200);
+            counts++;
+        }
+        //Knocks gold mineral using side panel
+        strafeInches(-15+(-18-robot.driveTrain.getPosition().x), 0.3, 0.15);
+        Thread.sleep(200);
+        //Returns to prior position
+        strafeInches(15+(-33-robot.driveTrain.getPosition().x), 0.3, 0.15);
+        Thread.sleep(200);
+        //Moves forward
+        driveInches(34,0.4,0.15);
+        Thread.sleep(200);
+        //Turns 45 degrees
+        turnDegrees(-45,0.4,0.15);
+        Thread.sleep(200);
+        //Strafes into line with depot
+        Position pos = robot.driveTrain.getPosition();
+        strafeInches(-14+(-36-pos.x*MathFTC.cos45 - pos.y*MathFTC.sin45),0.4,0.15);
+        Thread.sleep(200);
+        //Drives to depot
+        driveInches(-46,0.4,0.15);
+        Thread.sleep(200);
+        //Deploy team-marker here
 
+        //Drives to crater
+        driveInches(56,0.4,0.15);
+        Thread.sleep(200);
+        robot.driveTrain.setPower(0.3);
+        Thread.sleep(350);
+         //**/
+        robot.driveTrain.setPower(0);
+        Thread.sleep(20000);
     }
 
     @Override
     public void stop() {
+        detector.disable();
         robot.stop();
+        if (odTel != null) odTel.interrupt();
         super.stop();
     }
 
@@ -57,27 +138,35 @@ public class AutonomousGold extends LinearOpMode {
         double driveDirection = MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) > 0 ? 1 : -1;
         p1 *= driveDirection;
         p2 *= driveDirection;
-        robot.driveTrain.setPower(p1);
+        robot.driveTrain.setPower(-p1);
         if(driveDirection > 0) {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) <= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         } else {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) >= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         }
         Thread.sleep(50);
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
-        robot.driveTrain.setPower(-p2);
+        robot.driveTrain.setPower(p2);
         if(driveDirection > 0) {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) >= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         } else {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) <= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         }
         robot.driveTrain.setPower(0);
@@ -94,36 +183,45 @@ public class AutonomousGold extends LinearOpMode {
         double driveDirection = MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) > 0 ? 1 : -1;
         p1 *= driveDirection;
         p2 *= driveDirection;
-        robot.driveTrain.setPower(-p1, p1, -p1, p1);
+        robot.driveTrain.setPower(p1, -p1, -p1, p1);
         if(driveDirection > 0) {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) <= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         } else {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) >= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         }
         Thread.sleep(50);
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
-        robot.driveTrain.setPower(p2,-p2,p2,-p2);
+        /**
+        robot.driveTrain.setPower(-p2,p2,p2,-p2);
         if(driveDirection > 0) {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) >= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         } else {
-            while(!(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) <= 0)) {
+            Position pos = robot.driveTrain.getPosition();
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
+                pos = robot.driveTrain.getPosition();
             }
         }
         robot.driveTrain.setPower(0);
-        Thread.sleep(150);
+        Thread.sleep(150);**/
     }
 
     public void turnDegrees(double phi, double p1, double p2) throws InterruptedException {
         if(Math.abs(robot.driveTrain.getPosition().phi - phi) < 2) return;
-        double turnDirection = robot.driveTrain.getPosition().phi > phi ? 1 : -1;
+        double turnDirection = robot.driveTrain.getPosition().phi < phi ? 1 : -1;
         p1 *= turnDirection;
         p2 *= turnDirection;
         robot.driveTrain.setPower(p1, p1, -p1, -p1);
@@ -136,6 +234,7 @@ public class AutonomousGold extends LinearOpMode {
                 Thread.sleep(50);
             }
         }
+        /**
         Thread.sleep(50);
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
@@ -149,8 +248,40 @@ public class AutonomousGold extends LinearOpMode {
                 Thread.sleep(50);
             }
         }
+         //**/
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
 
+    }
+
+    public class OdometryTel extends Thread {
+
+        private volatile boolean isActive = false;
+        @Override
+        public void run() {
+            isActive = true;
+            while(isActive)    {
+                synchronized (this) {
+                    Position pos =  robot.driveTrain.getPosition();
+                    telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
+                    telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
+                    telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
+                    telemetry.update();
+                }
+
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    isActive = false;
+                    this.interrupt();
+                }
+            }
+        }
+
+        @Override
+        public void interrupt() {
+            isActive = false;
+            super.interrupt();
+        }
     }
 }
