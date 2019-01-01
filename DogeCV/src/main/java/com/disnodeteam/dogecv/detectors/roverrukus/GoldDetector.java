@@ -60,6 +60,9 @@ public class GoldDetector extends DogeCVDetector {
     @Override
     public Mat process(Mat input) {
 
+        //Cropping code. Removes upper third.
+        Imgproc.rectangle(input, new Point(0, 0), new Point(input.width()-1, (int) (input.width()*0.4)), new Scalar(0,0,0), -1);
+
         // Copy the input mat to our working mats, then release it for memory
         input.copyTo(displayMat);
         input.copyTo(workingMat);

@@ -61,45 +61,41 @@ public class AutonomousGold extends LinearOpMode {
         odTel.start();
         //Insert de-hook code here
         //Straighten robot
-        turnDegrees(90,0.2,0.1);
+        turnDegrees(0,0.2,0.1);
         //driveInches(24, 0.2, 0.1);
         //strafeInches(10, 0.3, 0.28);
         //Back off
-        //driveInches((21-robot.driveTrain.getPosition().x), 0.2, 0.1);
+        driveInches((20-robot.driveTrain.getPosition().x), 0.2, 0.1);
         //Turn right
-        //turnDegrees(90,0.2,0.15);
-        //boolean goldFound = false;
+        turnDegrees(90,0.2,0.15);
         //Back off to 1st sample
-        //driveInches((-21+robot.driveTrain.getPosition().y), 0.4, 0.15);
-        /**
+        driveInches((-21-robot.driveTrain.getPosition().y), 0.4, 0.15);
         //Starts detector
         int counts = 0;
-        while(!goldFound && opModeIsActive() && counts < 3) {
+        while(opModeIsActive() && counts < 2) {
             detector.enable();
             Thread.sleep(1000);
             Rect foundRect = detector.getFoundRect();
             detector.disable();
             if(foundRect != null) {
                 if(foundRect.area() > 4000) {
-                    goldFound = true;
                     break;
                 }
             }
-            driveInches(21,0.4,0.15);
+            driveInches(21,0.2,0.1);
             Thread.sleep(200);
             counts++;
         }
-        //Knocks gold mineral using side panel
-        strafeInches(-15+(-18-robot.driveTrain.getPosition().x), 0.3, 0.15);
-        Thread.sleep(200);
-        //Returns to prior position
-        strafeInches(15+(-33-robot.driveTrain.getPosition().x), 0.3, 0.15);
-        Thread.sleep(200);
+        /**
+        strafeInches(-28-robot.driveTrain.getPosition().x, 0.4, 0.28);
+        Thread.sleep(150);
+        strafeInches(-20-robot.driveTrain.getPosition().x, 0.4, 0.28);
+        Thread.sleep(150);
         //Moves forward
-        driveInches(34,0.4,0.15);
-        Thread.sleep(200);
+        driveInches(34-robot.driveTrain.getPosition().y,0.4,0.15);
+        Thread.sleep(150);
         //Turns 45 degrees
-        turnDegrees(-45,0.4,0.15);
+        turnDegrees(-45,0.2,0.15);
         Thread.sleep(200);
         //Strafes into line with depot
         Position pos = robot.driveTrain.getPosition();
