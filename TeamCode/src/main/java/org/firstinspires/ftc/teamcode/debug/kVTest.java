@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.constructs.DriveTrain;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
  * Created by LeviG on 12/11/2018.
  */
 @TeleOp(name = "kV Test")
+@Disabled
 public class kVTest extends LinearOpMode {
 
     Robot robot;

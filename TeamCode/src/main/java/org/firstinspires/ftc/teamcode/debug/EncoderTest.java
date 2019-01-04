@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * Created by LeviG on 9/30/2018.
  */
 @TeleOp(name = "Encoder Test")
+@Disabled
 public class EncoderTest extends LinearOpMode{
 
     EncoderMA3 encoder;

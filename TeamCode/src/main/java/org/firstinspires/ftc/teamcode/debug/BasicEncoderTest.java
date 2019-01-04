@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.debug;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
  * Created by LeviG on 12/9/2018.
  */
 @Autonomous(name = "Basic Encoder Test")
+@Disabled
 public class BasicEncoderTest extends LinearOpMode {
 
     @Override

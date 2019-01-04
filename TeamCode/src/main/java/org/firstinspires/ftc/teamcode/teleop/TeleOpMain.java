@@ -45,15 +45,15 @@ public class TeleOpMain extends LinearOpMode {
             float gamepad1LeftX = -gamepad1.left_stick_x;
             float gamepad1RightX = gamepad1.right_stick_x;
 
-            float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-            float BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
+            double FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+            double FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+            double BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
+            double BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
 
-            FrontRight = -scaleInput(FrontRight);
-            FrontLeft = -scaleInput(FrontLeft);
-            BackRight = -scaleInput(BackRight);
-            BackLeft = -scaleInput(BackLeft);
+            FrontRight = -scaleInput((float) FrontRight);
+            FrontLeft = -scaleInput((float) FrontLeft);
+            BackRight = -scaleInput((float) BackRight);
+            BackLeft = -scaleInput((float) BackLeft);
 
             FrontRight = Range.clip(FrontRight, -1, 1);
             FrontLeft = Range.clip(FrontLeft, -1, 1);
@@ -62,25 +62,25 @@ public class TeleOpMain extends LinearOpMode {
 
 
             if(gamepad1.dpad_left) {
-                FrontRight = -1;
-                BackRight = 1;
-                FrontLeft = -1;
-                BackLeft = 1;
+                FrontRight = -0.28;
+                BackRight = 0.28;;
+                FrontLeft = -0.28;
+                BackLeft = 0.28;
             } else if (gamepad1.dpad_right) {
-                FrontRight = 1;
-                BackRight = -1;
-                FrontLeft = 1;
-                BackLeft = -1;
+                FrontRight = 0.28;
+                BackRight = -0.28;
+                FrontLeft = 0.28;
+                BackLeft = -0.28;
             } else if (gamepad1.dpad_up) {
-                FrontRight = 1;
-                BackRight = 1;
-                FrontLeft = -1;
-                BackLeft = -1;
+                FrontRight = 0.28;
+                BackRight = 0.28;
+                FrontLeft = -0.28;
+                BackLeft = -0.28;
             } else if (gamepad1.dpad_down) {
-                FrontRight = -1;
-                BackRight = -1;
-                FrontLeft = 1;
-                BackLeft = 1;
+                FrontRight = -0.28;
+                BackRight = -0.28;
+                FrontLeft = 0.28;
+                BackLeft = 0.28;
             }
 
             double liftPower = gamepad1.left_trigger > 0.05 ? gamepad1.left_trigger : -1*gamepad1.right_trigger;

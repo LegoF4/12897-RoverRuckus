@@ -66,7 +66,6 @@ public class GoldExample extends OpMode {
         detector.ratioScorer.perfectRatio = 1.0;
         detector.enable();
 
-
     }
 
     @Override
@@ -84,7 +83,9 @@ public class GoldExample extends OpMode {
 
     @Override
     public void loop() {
-
+        double detectedArea = detector.isFound() ? detector.getFoundRect().area() : Double.NaN;
+        telemetry.addLine("Detected Area: " + Double.toString(detectedArea));
+        telemetry.update();
     }
 
     /*

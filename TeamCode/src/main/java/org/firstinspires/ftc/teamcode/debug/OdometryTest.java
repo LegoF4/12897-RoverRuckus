@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.navigation.Odometry;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
  * Created by LeviG on 9/27/2018.
  */
 @TeleOp(name = "Odometry Test")
+@Disabled
 public class OdometryTest extends LinearOpMode {
 
     private Odometry odometricTracker;

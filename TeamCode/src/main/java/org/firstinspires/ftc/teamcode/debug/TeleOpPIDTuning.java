@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
  * Created by LeviG on 12/11/2018.
  */
 @TeleOp(name = "PID Tuning")
+@Disabled
 public class TeleOpPIDTuning extends LinearOpMode {
 
     Robot robot;
