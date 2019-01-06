@@ -32,7 +32,6 @@ public class AutonomousGold extends LinearOpMode {
         robot = new Robot(hardwareMap);
         robot.init();
         //Sets power for steady-state hanging
-        //robot.lift.setPower(-0.28);
         //Sets up gold detector
         detector = new GoldDetector();
         detector.setAdjustedSize(new Size(480, 270));
@@ -52,14 +51,37 @@ public class AutonomousGold extends LinearOpMode {
         //Starts automatic transition thread
        // AutoTransitioner.transitionOnStop(this, "TeleOpMain");
         //Waits for game start
-        waitForStart();
-        /**
-        //Lowers robot
-        robot.lift.setPower(0.1);
-        Thread.sleep(4000);
-        robot.lift.setPower(0);
+        while(!isStarted()) {
+            if(Math.abs(gamepad1.left_stick_y) > 0.8) {
+                robot.lift.setPower(0.43*Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
+            } else {
+                robot.lift.setPower(-0.28);
+            }
+            synchronized (this) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+        robot.lift.setPower(-0.15);
         Thread.sleep(200);
-         //**/
+        robot.lift.setPower(0);
+        Thread.sleep(1000);
+        robot.driveTrain.setPower(0.4);
+        Thread.sleep(400);
+        robot.driveTrain.setPower(0);
+        Thread.sleep(500);
+        robot.driveTrain.setPower(-0.8);
+        Thread.sleep(150);
+        robot.driveTrain.setPower(0);
+        Thread.sleep(500);
+        robot.driveTrain.setPower(0.8, -0.8, -0.8, 0.8);
+        Thread.sleep(200);
+        robot.driveTrain.setPower(0);
+        Thread.sleep(1000);
         robot.driveTrain.startOdometry();
         odTel = new OdometryTel();
         odTel.start();
@@ -69,19 +91,33 @@ public class AutonomousGold extends LinearOpMode {
         //driveInches(24, 0.2, 0.1);
         //strafeInches(10, 0.3, 0.28);
         //Back off
-        driveInches((19.5-robot.driveTrain.getPosition().x), 0.2, 0.1);
+        driveInches((18.5-robot.driveTrain.getPosition().x), 0.25);
         //Turn right
         turnDegrees(90,0.18,0.15);
-        //Back off to 1st sample
-        driveInches((-25+robot.driveTrain.getPosition().y), 0.2, 0.1);
-        //Starts detector
-        int counts = 0;
+        driveInches(-5,0.2);
         boolean found = false;
-        while(opModeIsActive() && counts < 2) {
+        detector.enable();
+        Thread.sleep(500);
+        int i = 0;
+        while (i < 5) {
+            Rect foundRect = detector.getFoundRect();
+            if(foundRect != null) {
+                if(foundRect.area() > 10) {
+                    found = true;
+                    break;
+                }
+            }
+            i++;
+            Thread.sleep(40);
+        }
+        detector.disable();
+        //Starts detector
+        if(!found) {
+            driveInches((-25+robot.driveTrain.getPosition().y), 0.2, 0.1);
             detector.enable();
             Thread.sleep(500);
-            int i = 0;
-            while (i < 5) {
+            int j = 0;
+            while (j < 5) {
                 Rect foundRect = detector.getFoundRect();
                 if(foundRect != null) {
                     if(foundRect.area() > 10) {
@@ -89,35 +125,36 @@ public class AutonomousGold extends LinearOpMode {
                         break;
                     }
                 }
-                i++;
+                j++;
                 Thread.sleep(40);
             }
             detector.disable();
-            if(found) break;
-            driveInches(15,0.2,0.1);
-            counts++;
+            if(!found) driveInches(30,0.2,0.1);
         }
         strafeInches(-26.5+robot.driveTrain.getPosition().x, 0.3, 0.28);
         strafeInches(-16+robot.driveTrain.getPosition().x, 0.3, 0.28);
         turnDegrees(90, 0.1, 0.15);
         //Moves forward
-        driveInches(40-robot.driveTrain.getPosition().y,0.2,0.1);
+        driveInches(40-robot.driveTrain.getPosition().y,0.4,0.1);
         //Turns 45 degrees
-        turnDegrees(-45,0.18,0.15);
+        turnDegrees(135,0.18,0.15);
         //Strafes into line with depot
         Position pos = robot.driveTrain.getPosition();
-        strafeInches(43 -pos.x*MathFTC.cos45 -pos.y*MathFTC.sin45,0.3,0.28);
-        turnDegrees(-44,0.14,0.15);
+        strafeInches(-43 +pos.x*MathFTC.cos45 +pos.y*MathFTC.sin45,0.3,0.28);
+        turnDegrees(145,0.14,0.15);
+        /**
         //Drives to depot
         pos = robot.driveTrain.getPosition();
-        driveInches(30-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45,0.2,0.1);
+        driveInches(-39-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45,0.4,0.1);
         //Deploy team-marker here
-
+        /**
         //Drives to crater
-        driveInches(-40,0.6);
-        robot.driveTrain.setPower(0.35);
+        driveInches(40,0.6);
+        robot.driveTrain.setPower(-0.35);
         Thread.sleep(350);
          //**/
+        robot.driveTrain.setPower(-0.65);
+        Thread.sleep(850);
         robot.driveTrain.setPower(0);
         Thread.sleep(200000);
     }
