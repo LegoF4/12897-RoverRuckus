@@ -60,8 +60,9 @@ public class TeleOpMain extends LinearOpMode {
         waitForStart();
         int count = 0;
         while (opModeIsActive()) {
-            /*
-            REAL CODE float gamepad1LeftY = -gamepad1.left_stick_y;
+
+            //REAL CODE
+            float gamepad1LeftY = -gamepad1.left_stick_y;
 
             float gamepad1LeftX = gamepad1.left_stick_x;
             float gamepad1RightX = gamepad1.right_stick_x;
@@ -144,8 +145,8 @@ public class TeleOpMain extends LinearOpMode {
                 dumpAngleLeft.setPosition(0.97);
             }
 */
-            /*
-REAL CODE
+
+//REAL CODE
             if (gamepad1.x) {
                 //intake down
                 intakeAngleLeft.setPosition(0.97);
@@ -181,22 +182,6 @@ REAL CODE
             telemetry.update();
 
             Thread.sleep(50);
-            */
-            if (gamepad1.x) {
-                //intake down
-                intakeAngleRight.setPosition(1);
-
-            } else if (gamepad1.b) {
-                //intake up
-                intakeAngleRight.setPosition(0);
-
-            } else if (gamepad1.dpad_left) {
-                intakeAngleLeft.setPosition(0);
-
-            } else if (gamepad1.dpad_right) {
-                intakeAngleLeft.setPosition(1);
-
-            }
         }
     }
 
