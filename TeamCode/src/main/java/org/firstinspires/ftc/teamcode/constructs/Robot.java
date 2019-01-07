@@ -23,7 +23,6 @@ public class Robot {
     }
 
     public void init() {
-        driveTrain.init();
         lift.init();
 
     }

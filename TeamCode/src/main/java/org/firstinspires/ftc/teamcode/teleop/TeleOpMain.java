@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
+import java.security.Policy;
+
 @TeleOp(name="TeleOpMain")
 public class TeleOpMain extends LinearOpMode {
 
@@ -59,6 +61,8 @@ public class TeleOpMain extends LinearOpMode {
 
         waitForStart();
         int count = 0;
+        boolean toggle = false;
+        boolean pressed = false;
         while (opModeIsActive()) {
 
             //REAL CODE
@@ -84,9 +88,14 @@ public class TeleOpMain extends LinearOpMode {
 
 
             double liftPower = gamepad1.right_trigger > 0.05 ? gamepad1.right_trigger : -1*gamepad1.left_trigger;
-            liftPower = 0.4*Math.signum(liftPower)*Math.pow(liftPower,2);
-            vl.setPower(liftPower);
-            vr.setPower(-liftPower);
+            liftPower = 0.35*Math.signum(liftPower)*Math.pow(liftPower,2);
+            if (gamepad1.dpad_down) {
+                vl.setPower(1);
+                vr.setPower(-1);
+            } else {
+                vl.setPower(-liftPower);
+                vr.setPower(liftPower);
+            }
 
             if(gamepad1.a) {
                 hl.setPower(0.5);
@@ -111,69 +120,39 @@ public class TeleOpMain extends LinearOpMode {
             //    intakeSpinRight.setPower(0);
             //}
 
-            //intake angle
-
-            if (gamepad1.dpad_up) {
-                intakeAngleLeft.setPosition(0.16);
-                intakeAngleRight.setPosition(0.84);
-            } else if (gamepad1.dpad_down) {
+//REAL CODE
+            if(gamepad1.right_stick_button && !pressed) {
+                toggle = !toggle;
+                pressed = true;
+            } else if (!gamepad1.right_stick_button && pressed) {
+                pressed = false;
+            }
+            if(toggle) {
                 intakeAngleLeft.setPosition(0.97);
                 intakeAngleRight.setPosition(0.03);
+            } else {
+                intakeAngleLeft.setPosition(0.03);
+                intakeAngleRight.setPosition(0.97);
             }
-
-
-
-
-
-/*NOT REAL CODE
-            if (gamepad1.x) {
-               // dumpAngleLeft.setPosition(0.08);
-                dumpAngleRight.setPosition(0.97);
-            } else if (gamepad1.a) {
-                //dumpAngleLeft.setPosition(0.3);
-                dumpAngleRight.setPosition(0.85);
-            } else if (gamepad1.b) {
-                //dumpAngleLeft.setPosition(0.9);
-                dumpAngleRight.setPosition(0.1);
-            }
-
-            if (gamepad1.dpad_left) {
-                dumpAngleLeft.setPosition(0.24);
-            } else if (gamepad1.dpad_down) {
-                dumpAngleLeft.setPosition(0.37);
-            } else if (gamepad1.dpad_right) {
-                dumpAngleLeft.setPosition(0.97);
-            }
-*/
-
-//REAL CODE
             if (gamepad1.x) {
                 //intake down
-                intakeAngleLeft.setPosition(0.97);
-                intakeAngleRight.setPosition(0.03);
                 //dump middle
                 dumpAngleRight.setPosition(0.85);
                 dumpAngleLeft.setPosition(0.37);
             } else if (gamepad1.right_stick_button) {
-                //intake up
-                intakeAngleLeft.setPosition(0.16);
-                intakeAngleRight.setPosition(0.84);
                 //dump down
                 dumpAngleLeft.setPosition(0.24);
                 dumpAngleRight.setPosition(0.97);
             } else if (gamepad1.b) {
-                //intake down
-                intakeAngleLeft.setPosition(0.97);
-                intakeAngleRight.setPosition(0.03);
                 //dump up
                 dumpAngleRight.setPosition(0.1);
                 dumpAngleLeft.setPosition(0.97);
             }
 
-            frontRight.setPower(FrontRight);
-            frontLeft.setPower(FrontLeft);
-            backLeft.setPower(BackLeft);
-            backRight.setPower(BackRight);
+            frontRight.setPower(0.55*FrontRight);
+            frontLeft.setPower(0.55*FrontLeft);
+            backLeft.setPower(0.55*BackLeft);
+            backRight.setPower(0.55*BackRight);
 
             telemetry.addLine("Front Right: " + Double.toString(FrontRight));
             telemetry.addLine("Front Left: " + Double.toString(FrontLeft));

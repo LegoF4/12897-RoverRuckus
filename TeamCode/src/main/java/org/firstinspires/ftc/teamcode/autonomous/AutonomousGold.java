@@ -31,42 +31,25 @@ public class AutonomousGold extends LinearOpMode {
         //Instantiates and initiates hardware
         robot = new Robot(hardwareMap);
         robot.init();
+        robot.lift.setPower(0.28);
         //Sets power for steady-state hanging
         //Sets up gold detector
-        detector = new GoldDetector();
-        detector.setAdjustedSize(new Size(480, 270));
-        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
-        detector.useDefaults();// Optional Tuning
-
-        detector.downscale = 0.4; // How much to downscale the input frames
-
-        detector.areaScoringMethod = DogeCV.AreaScoringMethod.PERFECT_AREA; // Can also be PERFECT_AREA
-        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
-        detector.perfectAreaScorer.weight = 0.05;
-        Thread.sleep(100);
-        detector.enable();
-        Thread.sleep(100);
-        detector.disable();
-        //detector.disable();
         //Starts automatic transition thread
        // AutoTransitioner.transitionOnStop(this, "TeleOpMain");
-        //Waits for game start
+        //Waits for game startwhile (!isStarted()) {
         while(!isStarted()) {
-            if(Math.abs(gamepad1.left_stick_y) > 0.8) {
-                robot.lift.setPower(0.43*Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2));
-            } else {
-                robot.lift.setPower(-0.28);
-            }
             synchronized (this) {
                 try {
-                    this.wait();
+                    telemetry.addLine("Silly Comment");
+                    telemetry.update();
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
                 }
             }
         }
-        robot.lift.setPower(-0.15);
+        robot.lift.setPower(0.15);
         Thread.sleep(200);
         robot.lift.setPower(0);
         Thread.sleep(1000);
@@ -79,23 +62,38 @@ public class AutonomousGold extends LinearOpMode {
         robot.driveTrain.setPower(0);
         Thread.sleep(500);
         robot.driveTrain.setPower(0.8, -0.8, -0.8, 0.8);
-        Thread.sleep(200);
+        Thread.sleep(400);
         robot.driveTrain.setPower(0);
-        Thread.sleep(1000);
+        Thread.sleep(400);
+        robot.driveTrain.setPower(0.4);
+        Thread.sleep(500);
+        robot.driveTrain.setPower(0);
+        Thread.sleep(500);
+        robot.driveTrain.odometricTracker.init();
         robot.driveTrain.startOdometry();
         odTel = new OdometryTel();
         odTel.start();
-        //Insert de-hook code here
         //Straighten robot
+
         turnDegrees(0,0.2,0.1);
-        //driveInches(24, 0.2, 0.1);
-        //strafeInches(10, 0.3, 0.28);
         //Back off
-        driveInches((18.5-robot.driveTrain.getPosition().x), 0.25);
+        driveInches((19.5-robot.driveTrain.getPosition().x), 0.2, 0.1);
         //Turn right
         turnDegrees(90,0.18,0.15);
-        driveInches(-5,0.2);
+        //driveInches(0-robot.driveTrain.getPosition().y, 0.2 ,0.1);
+        driveInches(-5, 0.2 ,0.1);
         boolean found = false;
+        detector = new GoldDetector();
+        detector.setAdjustedSize(new Size(480, 270));
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        detector.useDefaults();// Optional Tuning
+
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.PERFECT_AREA; // Can also be PERFECT_AREA
+        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.perfectAreaScorer.weight = 0.05;
+        Thread.sleep(100);
         detector.enable();
         Thread.sleep(500);
         int i = 0;
@@ -113,7 +111,8 @@ public class AutonomousGold extends LinearOpMode {
         detector.disable();
         //Starts detector
         if(!found) {
-            driveInches((-25+robot.driveTrain.getPosition().y), 0.2, 0.1);
+            //driveInches((-23+robot.driveTrain.getPosition().y), 0.2, 0.1);
+            driveInches(-23, 0.2, 0.1);
             detector.enable();
             Thread.sleep(500);
             int j = 0;
@@ -135,7 +134,7 @@ public class AutonomousGold extends LinearOpMode {
         strafeInches(-16+robot.driveTrain.getPosition().x, 0.3, 0.28);
         turnDegrees(90, 0.1, 0.15);
         //Moves forward
-        driveInches(40-robot.driveTrain.getPosition().y,0.4,0.1);
+        driveInches(40-robot.driveTrain.getPosition().y,0.25,0.1);
         //Turns 45 degrees
         turnDegrees(135,0.18,0.15);
         //Strafes into line with depot
@@ -152,16 +151,17 @@ public class AutonomousGold extends LinearOpMode {
         driveInches(40,0.6);
         robot.driveTrain.setPower(-0.35);
         Thread.sleep(350);
-         //**/
         robot.driveTrain.setPower(-0.65);
         Thread.sleep(850);
+         //**/
         robot.driveTrain.setPower(0);
         Thread.sleep(200000);
     }
 
     @Override
     public void stop() {
-        detector.disable();
+        StaticLog.addLine("Stop Requested");
+        if(detector != null) detector.disable();
         robot.stop();
         if (odTel != null) odTel.interrupt();
         super.stop();
@@ -195,6 +195,7 @@ public class AutonomousGold extends LinearOpMode {
 
     //Drives forward on current bearing until it has past a certain distance.
     public void driveInches(double distance, double p1, double p2) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
         Position startPos = robot.driveTrain.getPosition();
         double cos = Math.cos((Math.PI/180)*startPos.phi);
         double sin = Math.sin((Math.PI/180)*startPos.phi);
@@ -210,12 +211,14 @@ public class AutonomousGold extends LinearOpMode {
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         } else {
             Position pos = robot.driveTrain.getPosition();
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         }
         Thread.sleep(50);
@@ -227,12 +230,14 @@ public class AutonomousGold extends LinearOpMode {
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 3000) break;
             }
         } else {
             Position pos = robot.driveTrain.getPosition();
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 3000) break;
             }
         }
         robot.driveTrain.setPower(0);
@@ -240,6 +245,7 @@ public class AutonomousGold extends LinearOpMode {
     }
 
     public void strafeInches(double distance, double p1, double p2) throws InterruptedException {
+        long startTime = System.currentTimeMillis();
         Position startPos = robot.driveTrain.getPosition();
         double cos = Math.cos((Math.PI/180)*(startPos.phi+90));
         double sin = Math.sin((Math.PI/180)*(startPos.phi+90));
@@ -255,12 +261,14 @@ public class AutonomousGold extends LinearOpMode {
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         } else {
             Position pos = robot.driveTrain.getPosition();
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         }
         Thread.sleep(50);
@@ -286,7 +294,8 @@ public class AutonomousGold extends LinearOpMode {
     }
 
     public void turnDegrees(double phi, double p1, double p2) throws InterruptedException {
-        if(Math.abs(robot.driveTrain.getPosition().phi - phi) < 8) return;
+        long startTime = System.currentTimeMillis();
+        if(Math.abs(robot.driveTrain.getPosition().phi - phi) < 5) return;
         double turnDirection = robot.driveTrain.getPosition().phi < phi ? 1 : -1;
         p1 *= turnDirection;
         p2 *= turnDirection;
@@ -294,10 +303,12 @@ public class AutonomousGold extends LinearOpMode {
         if(turnDirection > 0) {
             while(!(robot.driveTrain.getPosition().phi >= phi)) {
                 Thread.sleep(50);
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         } else {
             while (!(robot.driveTrain.getPosition().phi <= phi)) {
                 Thread.sleep(50);
+                if(System.currentTimeMillis() - startTime > 5000) break;
             }
         }
         /**

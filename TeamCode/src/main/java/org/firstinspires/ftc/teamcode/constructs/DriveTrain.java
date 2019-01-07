@@ -70,7 +70,7 @@ public class DriveTrain {
         centerPod = new EncoderMA3(map.get(AnalogInput.class,"center"));
         rightPod = new EncoderMA3(map.get(AnalogInput.class,"right"));
 
-        odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100);
+        odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100, 0, 4, 0);
         this.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.isDriving = false;
@@ -160,6 +160,8 @@ public class DriveTrain {
         startTime = System.currentTimeMillis();
         odometricTracker.startTracking();
     }
+
+
 
     public synchronized void stopOdometry() {
         //StaticLog.addLine("Ticks Past: " + Integer.toString(odometricTracker.getPositions().size()));
