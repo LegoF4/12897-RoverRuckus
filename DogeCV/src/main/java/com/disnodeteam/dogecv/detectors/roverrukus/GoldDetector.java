@@ -61,9 +61,12 @@ public class GoldDetector extends DogeCVDetector {
     public Mat process(Mat input) {
 
         //Cropping code. Removes upper third.
-        Imgproc.rectangle(input, new Point((int) (input.width()*0.71), 0), new Point(input.width()-1, input.height()-1), new Scalar(0,0,0), -1);
+        //Imgproc.rectangle(input, new Point((int) (input.width()*0.71), 0), new Point(input.width()-1, input.height()-1), new Scalar(0,0,0), -1);
         //Cropping code. Removes left third.
-        Imgproc.rectangle(input, new Point(0, 0), new Point(input.width()-1, (int) (0.42*input.height()-1)), new Scalar(0,0,0), -1);
+        //Imgproc.rectangle(input, new Point(0, 0), new Point(input.width()-1, (int) (0.42*input.height()-1)), new Scalar(0,0,0), -1);
+
+        //Perp start crop
+        Imgproc.rectangle(input, new Point(input.width(), input.height()), new Point(0,input.height()*0.5), new Scalar(0,0,0), -1);
 
         // Copy the input mat to our working mats, then release it for memory
         input.copyTo(displayMat);

@@ -5,7 +5,6 @@ import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.AutoTransitioner;
 import org.firstinspires.ftc.teamcode.constructs.Robot;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
@@ -18,7 +17,7 @@ import org.opencv.core.Size;
  * Created by LeviG on 12/16/2018.
  */
 @Autonomous(name = "Double Sample Autonomous")
-public class AutonomousDoubleSample extends LinearOpMode {
+public class AutonomousDoubleSamplePerp extends LinearOpMode {
 
     MineralPosition mineralPosition = null;
     Robot robot;
