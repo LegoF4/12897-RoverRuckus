@@ -37,18 +37,7 @@ public class AutonomousGold extends LinearOpMode {
         //Starts automatic transition thread
        // AutoTransitioner.transitionOnStop(this, "TeleOpMain");
         //Waits for game startwhile (!isStarted()) {
-        while(!isStarted()) {
-            synchronized (this) {
-                try {
-                    telemetry.addLine("Silly Comment");
-                    telemetry.update();
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        }
+        waitForStart();
         robot.lift.setPower(0.15);
         Thread.sleep(200);
         robot.lift.setPower(0);

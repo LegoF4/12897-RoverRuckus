@@ -1,196 +1,176 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.constructs.Robot;
+import org.firstinspires.ftc.teamcode.constructs.Slides;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.Button;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.ConditionedDigitalButton;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.DigitalButton;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.ToggleButton;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+import org.firstinspires.ftc.teamcode.utilities.misc.TeleOpMode;
 
 @TeleOp(name="TeleOpNew")
-public class TeleOpNew extends LinearOpMode {
+public class TeleOpNew extends TeleOpMode {
 
-    public DcMotor backLeft;
-    public DcMotor backRight;
-    public DcMotor frontLeft;
-    public DcMotor frontRight;
-    public DcMotor vl;
-    public DcMotor vr;
-    public DcMotor hl;
-    public DcMotor hr;
+    public Robot robot;
 
-    public CRServo il;
-    public CRServo ir;
-    public Servo al;
-    public Servo ar;
-
-    public Servo dl;
-    public Servo dr;
-
-    public enum Deposit {
-        DEPOSIT,
-        MIDDLE,
-        DOWN
-    }
-
-    public enum Rollers {
-        INTAKE,
-        OUTPUT
-    }
-
-    public enum Arm {
-        UP,
-        DOWN
-    }
-
+    public volatile float powerScalar = 0.55f;
 
     public void runOpMode() throws InterruptedException {
+        StaticLog.clearLog();
+        Robot robot = new Robot(hardwareMap);
+        /**
+         * DRIVE CODE
+         */
+        //Slow Mode Button
+        addButton(new ToggleButton(Key.RIGHT_STICK) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                switch (currentState) {
+                    case 0:
+                        powerScalar = 0.65f;
+                        break;
+                    case 1:
+                        powerScalar = 0.35f;
+                        break;
+                }
+            }
+        });
+        //Mecanum drive train code
+        addButton(new Button(new Key[]{Key.LEFT_X,Key.LEFT_Y,Key.RIGHT_X}) {
+            @Override
+            public void update() {
+                float gamepad1LeftY = (float) (double) -keyValues.get(1);
+                float gamepad1LeftX = (float) (double) keyValues.get(0);
+                float gamepad1RightX = (float) (double) keyValues.get(2);
 
-        backLeft = hardwareMap.dcMotor.get("bl");
-        backRight = hardwareMap.dcMotor.get("br");
-        frontLeft = hardwareMap.dcMotor.get("fl");
-        frontRight = hardwareMap.dcMotor.get("fr");
-        vl = hardwareMap.get(DcMotor.class, "vl");
-        vr = hardwareMap.get(DcMotor.class, "vr");
-        hl = hardwareMap.get(DcMotor.class, "hl");
-        hr = hardwareMap.get(DcMotor.class, "hr");
+                float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+                float FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+                float BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
+                float BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
 
-        il = hardwareMap.get(CRServo.class, "il");
-        ir = hardwareMap.get(CRServo.class, "ir");
-        al = hardwareMap.get(Servo.class, "al");
-        ar = hardwareMap.get(Servo.class, "ar");
+                FrontRight = -scaleInput(FrontRight);
+                FrontLeft = -scaleInput(FrontLeft);
+                BackRight = -scaleInput(BackRight);
+                BackLeft = -scaleInput(BackLeft);
 
-        dl = hardwareMap.get(Servo.class, "dl");
-        dr = hardwareMap.get(Servo.class, "dr");
+                FrontRight = Range.clip(FrontRight, -1, 1);
+                FrontLeft = Range.clip(FrontLeft, -1, 1);
+                BackLeft = Range.clip(BackLeft, -1, 1);
+                BackRight = Range.clip(BackRight, -1, 1);
 
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        vl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        vr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+                getRobot().driveTrain.setPower(-1*powerScalar*FrontLeft, -1*powerScalar*BackLeft, powerScalar*FrontRight, powerScalar*BackRight);
+            }
+        });
+        /**
+         * INTAKE CODE
+         */
+        //Toggles arm for collection
+        addButton(new ToggleButton(Key.RIGHT_BUMPER, 0.5d) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                switch (currentState) {
+                    case 0:
+                        getRobot().slides.setArmPosition(Slides.Arm.REST);
+                        break;
+                    case 1:
+                        getRobot().slides.setArmPosition(Slides.Arm.OUT);
+                        break;
+                }
+            }
+        });
+        //Rotates arm in to transfer
+        addButton(new DigitalButton(Key.B) {
+            @Override
+            public void setOutput() {
+                getRobot().slides.setArmPosition(Slides.Arm.IN);
+            }
+        });
+        addButton(new ConditionedDigitalButton(new TeleOpMode.Key[]{Key.A,Key.Y}) {
+            @Override
+            public void setOutput(int state) {
+                switch (state) {
+                    case 0:
+                        getRobot().slides.setPower(0.5);
+                        break;
+                    case 1:
+                        getRobot().slides.setPower(-0.5);
+                        break;
+                    default:
+                        getRobot().slides.setPower(0);
+                        break;
+                }
+            }
+        });
+        /**
+         * LIFT CODE
+         */
+        //Maximum lift force
+        addButton(new DigitalButton(Key.DPAD_DOWN) {
+            @Override
+            public void setOutput() {
+                getRobot().lift.setPower(1);
+            }
+        });
+        //Variable lift force
+        addButton(new Button(new Key[]{Key.LEFT_TRIGGER, Key.RIGHT_TRIGGER, Key.DPAD_DOWN}) {
+            @Override
+            public void update() {
+                if(!(keyValues.get(2) > 0.5)) {
+                    double liftPower = keyValues.get(1) > 0.05 ? keyValues.get(1) : -1*keyValues.get(0);
+                    liftPower = 0.35*Math.signum(liftPower)*Math.pow(liftPower,2);
+                    getRobot().lift.setPower(-liftPower);
+                }
+            }
+        });
+        //Deposit from middle
+        addButton(new ToggleButton(Key.LEFT_BUMPER) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                switch (currentState) {
+                    case 0:
+                        getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                        break;
+                    case 1:
+                        getRobot().setDeposit(Robot.Deposit.DEPOSIT);
+                        break;
+                }
+            }
+        });
+        //Move deposit bucket down for transfer, if not dumping
+        addButton(new ToggleButton(new TeleOpMode.Key[]{Key.X, Key.LEFT_BUMPER}) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                if(!(keyValues.get(1) > 0.5)) {
+                    switch (currentState) {
+                        case 0:
+                            getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                            break;
+                        case 1:
+                            getRobot().setDeposit(Robot.Deposit.DOWN);
+                            break;
+                    }
+                }
+            }
+        });
+        robot.init();
         waitForStart();
         //Loop variables
-        boolean toggle = false;
-        boolean pressed = false;
-        float FrontLeft;
-        float FrontRight;
-        float BackRight;
-        float BackLeft;
-        float gamepad1LeftY;
-        float gamepad1LeftX;
-        float gamepad1RightX;
-        double liftPower;
-        Deposit deposit = null;
-        Rollers rollers = null;
-        Arm arm = null;
-
         while (opModeIsActive()) {
-            //Motor Control
-            gamepad1LeftY = -gamepad1.left_stick_y;
-            gamepad1LeftX = gamepad1.left_stick_x;
-            gamepad1RightX = gamepad1.right_stick_x;
-
-            FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-            BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-
-            FrontRight = -scaleInput(FrontRight);
-            FrontLeft = -scaleInput(FrontLeft);
-            BackRight = -scaleInput(BackRight);
-            BackLeft = -scaleInput(BackLeft);
-
-            FrontRight = Range.clip(FrontRight, -1, 1);
-            FrontLeft = Range.clip(FrontLeft, -1, 1);
-            BackLeft = Range.clip(BackLeft, -1, 1);
-            BackRight = Range.clip(BackRight, -1, 1);
-
-            //Lift Power
-            liftPower = gamepad1.right_trigger > 0.05 ? gamepad1.right_trigger : -1*gamepad1.left_trigger;
-            liftPower = 0.35*Math.signum(liftPower)*Math.pow(liftPower,2);
-            if (gamepad1.dpad_down) {
-                vl.setPower(1);
-                vr.setPower(-1);
-            } else {
-                vl.setPower(-liftPower);
-                vr.setPower(liftPower);
-            }
-
-            //Deposit Control
-            if(gamepad1.a) {
-                hl.setPower(0.5);
-                hr.setPower(-0.5);
-            } else if (gamepad1.y) {
-                hl.setPower(-0.5);
-                hr.setPower(0.5);
-            } else {
-                hl.setPower(0);
-                hr.setPower(0);
-            }
-
-            //Intake Control
-            if (gamepad1.left_bumper) {
-                il.setPower(1);
-                ir.setPower(-1);
-            } else if (gamepad1.right_bumper) {
-                il.setPower(-1);
-                ir.setPower(1);
-            } //else {
-                //il.setPower(0);
-            //    ir.setPower(0);
-            //}
-
-//REAL CODE
-            if(gamepad1.right_stick_button && !pressed) {
-                toggle = !toggle;
-                pressed = true;
-            } else if (!gamepad1.right_stick_button && pressed) {
-                pressed = false;
-            }
-            if(toggle) {
-                al.setPosition(0.97);
-                ar.setPosition(0.03);
-            } else {
-                al.setPosition(0.03);
-                ar.setPosition(0.97);
-            }
-            if (gamepad1.x) {
-                //intake down
-                //dump middle
-                dr.setPosition(0.85);
-                dl.setPosition(0.37);
-            } else if (gamepad1.right_stick_button) {
-                //dump down
-                dl.setPosition(0.24);
-                dr.setPosition(0.97);
-            } else if (gamepad1.b) {
-                //dump up
-                dr.setPosition(0.1);
-                dl.setPosition(0.97);
-            }
-
-            frontRight.setPower(0.55*FrontRight);
-            frontLeft.setPower(0.55*FrontLeft);
-            backLeft.setPower(0.55*BackLeft);
-            backRight.setPower(0.55*BackRight);
-
-            telemetry.addLine("Front Right: " + Double.toString(FrontRight));
-            telemetry.addLine("Front Left: " + Double.toString(FrontLeft));
-            telemetry.addLine("Back Right: " + Double.toString(BackRight));
-            telemetry.addLine("Back Left: " + Double.toString(BackLeft));
-            telemetry.update();
-
+            updateButtons();
             Thread.sleep(50);
         }
     }
 
+    public Robot getRobot() {
+        return robot;
+    }
 
-    float scaleInput(float dVal) {
+    public float scaleInput(float dVal) {
         float[] scaleArray = {0.0f, 0.05f, 0.09f, 0.10f, 0.12f, 0.15f, 0.18f, 0.24f,
                 0.30f, 0.36f, 0.43f, 0.50f, 0.60f, 0.72f, 0.85f, 1.00f, 1.00f};
 

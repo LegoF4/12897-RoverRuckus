@@ -63,9 +63,6 @@ public class DriveTrain {
         br = map.get(DcMotor.class,"br");
         bl = map.get(DcMotor.class,"bl");
 
-        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-        bl.setDirection(DcMotorSimple.Direction.REVERSE);
-
         leftPod = new EncoderMA3(map.get(AnalogInput.class,"left"));
         centerPod = new EncoderMA3(map.get(AnalogInput.class,"center"));
         rightPod = new EncoderMA3(map.get(AnalogInput.class,"right"));
@@ -154,6 +151,10 @@ public class DriveTrain {
         if(controller != null) controller.stopControl();
         this.stopOdometry();
         setPower(0);
+        bl.close();
+        br.close();
+        fr.close();
+        fl.close();
     }
 
     public synchronized void startOdometry() {
@@ -188,8 +189,8 @@ public class DriveTrain {
         brP = MathFTC.clamp(brP, -1, 1);
         fr.setPower(frP);
         br.setPower(brP);
-        fl.setPower(flP);
-        bl.setPower(blP);
+        fl.setPower(-1*flP);
+        bl.setPower(-1*blP);
     }
 
     public synchronized void setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior behaviour) {

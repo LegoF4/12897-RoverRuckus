@@ -59,7 +59,9 @@ public abstract class LinearOpMode extends OpMode {
     while (!isStarted()) {
       synchronized (this) {
         try {
-          this.wait();
+          telemetry.addLine("Waiting for start...");
+          telemetry.update();
+          Thread.sleep(10);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           return;

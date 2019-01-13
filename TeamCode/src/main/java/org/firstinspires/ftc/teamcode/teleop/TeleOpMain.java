@@ -67,7 +67,6 @@ public class TeleOpMain extends LinearOpMode {
 
             //REAL CODE
             float gamepad1LeftY = -gamepad1.left_stick_y;
-
             float gamepad1LeftX = gamepad1.left_stick_x;
             float gamepad1RightX = gamepad1.right_stick_x;
 
