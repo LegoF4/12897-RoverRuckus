@@ -6,6 +6,7 @@ import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
+import org.firstinspires.ftc.teamcode.navigation.Odometry;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
@@ -16,7 +17,7 @@ import org.opencv.core.Size;
 /**
  * Created by LeviG on 12/16/2018.
  */
-@Autonomous(name = "Double Sample Autonomous")
+@Autonomous(name = "Autonomous Perpendicular")
 public class AutonomousDoubleSamplePerp extends LinearOpMode {
 
     MineralPosition mineralPosition = null;
@@ -51,28 +52,22 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
                 }
             }
         }
+        //Starts position tracking
         robot.driveTrain.startOdometry();
         odTel = new OdometryTel();
         odTel.start();
-        //Insert de-hook code here
-        //Straighten robot
-        turnDegrees(0,0.2);
-        //Back off
-        driveInches((21.5-robot.driveTrain.getPosition().x), 0.2, 0.1);
-        //Turn right
-        turnDegrees(90,0.2);
         initiDetector();
         boolean found = false;
         Thread.sleep(100);
         detector.enable();
-        Thread.sleep(500);
+        Thread.sleep(750);
         int i = 0;
         while (i < 5) {
             Rect foundRect = detector.getFoundRect();
             if(foundRect != null) {
-                if(foundRect.area() > 10) {
+                if(foundRect.area() > 2) {
                     found = true;
-                    mineralPosition = MineralPosition.CENTER;
+                    mineralPosition = 0.5*(foundRect.tl().y+foundRect.br().y) < 240 ? MineralPosition.LEFT : MineralPosition.CENTER;
                     break;
                 }
             }
@@ -80,72 +75,70 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
             Thread.sleep(40);
         }
         detector.disable();
-        telemetry.addLine("Found");
+        if(!found) mineralPosition = MineralPosition.RIGHT;
+        telemetry.addLine("Mineral Position: " + mineralPosition.name());
         telemetry.update();
-        //Back off to 1st sample
-        if(!found) {
-            driveInches((-31+robot.driveTrain.getPosition().y), 0.2, 0.1);
-            //Starts detector
-            Thread.sleep(100);
-            detector.enable();
-            Thread.sleep(500);
-            int j = 0;
-            while (j < 5) {
-                Rect foundRect = detector.getFoundRect();
-                if(foundRect != null) {
-                    if(foundRect.area() > 10) {
-                        found = true;
-                        mineralPosition = MineralPosition.RIGHT;
-                        break;
-                    }
-                }
-                j++;
-                Thread.sleep(40);
-            }
-            detector.disable();
+        strafeInches(-14-robot.driveTrain.getPosition().y, 0.3);
+        turnDegrees(0, 0.1);
+        switch(mineralPosition) {
+            case RIGHT:
+                driveInches((-15+robot.driveTrain.getPosition().x), 0.32);
+                break;
+            case LEFT:
+                driveInches((12+robot.driveTrain.getPosition().x), 0.32);
+                break;
         }
-        if(!found) {
-            driveInches(33,0.35,0.1);
-            mineralPosition = MineralPosition.LEFT;
-        }
-        strafeInches(-23+robot.driveTrain.getPosition().x, 0.3);
-        strafeInches(-18+robot.driveTrain.getPosition().x, 0.3);
-        turnDegrees(90, 0.1);
+        strafeInches(-21.2-robot.driveTrain.getPosition().y, 0.3);
+        strafeInches(-16-robot.driveTrain.getPosition().y, 0.3);
         //Moves forward
-        driveInches(44-robot.driveTrain.getPosition().y,0.4);
+        driveInches(35-robot.driveTrain.getPosition().x,0.4);
         //Turns 45 degrees
-        turnDegrees(-45,0.4,0.15);
+        turnDegrees(-135,0.4, 0.15);
         robot.driveTrain.setPower(0.55, -0.55, -0.55, 0.55);
-        Thread.sleep(1950);
+        Thread.sleep(1500);
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
+        strafeInches(-1, 0.28);
         pos = robot.driveTrain.getPosition();
         switch (mineralPosition) {
             case LEFT:
-                driveInches(-(63.5+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(85-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
+                turnDegrees(-135,0.1);
                 strafeInches(-33,0.35);
                 strafeInches(31,0.6);
                 break;
             case CENTER:
-                driveInches(-(51+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(72.5-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
+                turnDegrees(-135,0.1);
                 strafeInches(-19,0.35);
                 strafeInches(17,0.6);
                 break;
             case RIGHT:
-                driveInches(-(32.5+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(54-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
+                turnDegrees(-135,0.1);
                 strafeInches(-7,0.35);
                 strafeInches(5,0.6);
+                driveInches(-18, 0.3);
                 break;
         }
-        robot.driveTrain.setPower(0.3, -0.3, -0.3, 0.3);
         robot.setDeposit(Robot.Deposit.DEPOSIT);
-        Thread.sleep(500);
         robot.driveTrain.setPower(0);
-        Thread.sleep(1000);
+        Thread.sleep(1300);
         robot.setDeposit(Robot.Deposit.MIDDLE);
         //Drives to crater
-        robot.driveTrain.setPower(-1);
-        Thread.sleep(1650);
+        switch (mineralPosition) {
+            case RIGHT:
+                driveInches(35, 0.7);
+                break;
+            case CENTER:
+                driveInches(53, 0.7);
+                break;
+            case LEFT:
+                driveInches(65, 0.7);
+                break;
+        }
+        robot.driveTrain.setPower(-0.7);
+        Thread.sleep(200);
         //**/
         robot.driveTrain.setPower(0);
         Thread.sleep(200000);
@@ -364,6 +357,7 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
                     telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
                     telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
                     telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
+                    if(mineralPosition != null) telemetry.addLine("Mineral Position: " + mineralPosition.name());
                     telemetry.update();
                 }
 

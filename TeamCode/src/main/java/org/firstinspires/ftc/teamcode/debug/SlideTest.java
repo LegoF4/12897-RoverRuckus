@@ -23,10 +23,10 @@ public class SlideTest extends LinearOpMode {
         while (opModeIsActive()) {
             double power;
             if(Math.abs(gamepad1.left_stick_y) > 0.1) {
-                power = 0.35*Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2);
+                power = 1*Math.signum(gamepad1.left_stick_y)*Math.pow(gamepad1.left_stick_y,2);
             }
             else {
-                power = 0.2*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2);
+                power = 0.75*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2);
             }
             v1.setPower(power);
             v2.setPower(-power);

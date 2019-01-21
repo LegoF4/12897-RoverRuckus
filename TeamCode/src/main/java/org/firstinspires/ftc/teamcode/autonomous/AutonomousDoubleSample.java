@@ -123,17 +123,17 @@ public class AutonomousDoubleSample extends LinearOpMode {
         pos = robot.driveTrain.getPosition();
         switch (mineralPosition) {
             case LEFT:
-                driveInches(-(63.5+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(63.5-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
                 strafeInches(-33,0.35);
                 strafeInches(31,0.6);
                 break;
             case CENTER:
-                driveInches(-(51+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(51-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
                 strafeInches(-19,0.35);
                 strafeInches(17,0.6);
                 break;
             case RIGHT:
-                driveInches(-(32.5+pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(32.5-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
                 strafeInches(-7,0.35);
                 strafeInches(5,0.6);
                 break;

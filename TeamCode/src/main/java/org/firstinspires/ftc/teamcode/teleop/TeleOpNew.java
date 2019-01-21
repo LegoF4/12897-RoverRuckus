@@ -23,6 +23,7 @@ public class TeleOpNew extends TeleOpMode {
     public void runOpMode() throws InterruptedException {
         StaticLog.clearLog();
         Robot robot = new Robot(hardwareMap);
+        robot.init();
         /**
          * DRIVE CODE
          */
@@ -157,7 +158,6 @@ public class TeleOpNew extends TeleOpMode {
                 }
             }
         });
-        robot.init();
         waitForStart();
         //Loop variables
         while (opModeIsActive()) {
@@ -167,7 +167,7 @@ public class TeleOpNew extends TeleOpMode {
     }
 
     public Robot getRobot() {
-        return robot;
+        return this.robot;
     }
 
     public float scaleInput(float dVal) {

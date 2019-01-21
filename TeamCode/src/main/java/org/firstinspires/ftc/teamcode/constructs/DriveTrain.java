@@ -48,15 +48,15 @@ public class DriveTrain {
     private volatile DcMotor br;
     private volatile DcMotor bl;
 
-    private volatile Encoder leftPod;
-    private volatile Encoder centerPod;
-    private volatile Encoder rightPod;
+    public volatile Encoder leftPod;
+    public volatile Encoder centerPod;
+    public volatile Encoder rightPod;
 
     private volatile boolean isDriving;
 
     private volatile long startTime;
 
-    public DriveTrain(HardwareMap map) {
+    public DriveTrain(HardwareMap map, double x, double y, double phi) {
         this.map = map;
         fr = map.get(DcMotor.class,"fr");
         fl = map.get(DcMotor.class,"fl");
@@ -67,10 +67,14 @@ public class DriveTrain {
         centerPod = new EncoderMA3(map.get(AnalogInput.class,"center"));
         rightPod = new EncoderMA3(map.get(AnalogInput.class,"right"));
 
-        odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100, 0, 4, 0);
+        odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100, x, y, phi);
         this.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.isDriving = false;
+    }
+
+    public DriveTrain(HardwareMap map) {
+        this(map, -7, 11, 0);
     }
 
     /**

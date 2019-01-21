@@ -24,8 +24,12 @@ public class Robot {
     }
 
     public Robot(HardwareMap map) {
+        this(map, 0, 0, 0);
+    }
+
+    public Robot(HardwareMap map, double x, double y, double phi) {
         this.map = map;
-        this.driveTrain = new DriveTrain(map);
+        this.driveTrain = new DriveTrain(map, x, y, phi);
         this.lift = new Lift(map);
         this.slides = new Slides(map);
         this.dl = map.get(Servo.class, "dl");

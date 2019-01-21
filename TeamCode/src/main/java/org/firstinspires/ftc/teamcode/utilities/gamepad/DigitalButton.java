@@ -12,22 +12,22 @@ public abstract class DigitalButton extends Button {
 
     public DigitalButton(TeleOpMode.Key key) {
         super(new TeleOpMode.Key[]{key});
-        threshold = 0.5;
+        this.threshold = 0.5;
     }
 
     public DigitalButton(TeleOpMode.Key key, double threshold) {
         super(new TeleOpMode.Key[]{key});
-        threshold = threshold;
+        this.threshold = threshold;
     }
 
     public DigitalButton(TeleOpMode.Key[] keys) {
         super(keys);
-        threshold = 0.5;
+        this.threshold = 0.5;
     }
 
     public DigitalButton(TeleOpMode.Key[] keys, double threshold) {
         super(keys);
-        threshold = threshold;
+        this.threshold = threshold;
     }
 
     @Override
