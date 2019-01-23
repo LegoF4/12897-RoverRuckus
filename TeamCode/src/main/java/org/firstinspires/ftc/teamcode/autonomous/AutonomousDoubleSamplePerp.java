@@ -89,7 +89,7 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
                 break;
         }
         strafeInches(-21.2-robot.driveTrain.getPosition().y, 0.3);
-        strafeInches(-16-robot.driveTrain.getPosition().y, 0.3);
+        strafeInches(-17-robot.driveTrain.getPosition().y, 0.3);
         //Moves forward
         driveInches(35-robot.driveTrain.getPosition().x,0.4);
         //Turns 45 degrees
@@ -114,7 +114,7 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
                 strafeInches(17,0.6);
                 break;
             case RIGHT:
-                driveInches(-(54-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.5, 0.1);
+                driveInches(-(54-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.37, 0.1);
                 turnDegrees(-135,0.1);
                 strafeInches(-7,0.35);
                 strafeInches(5,0.6);
@@ -123,7 +123,7 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
         }
         robot.setDeposit(Robot.Deposit.DEPOSIT);
         robot.driveTrain.setPower(0);
-        Thread.sleep(1300);
+        Thread.sleep(2300);
         robot.setDeposit(Robot.Deposit.MIDDLE);
         //Drives to crater
         switch (mineralPosition) {
@@ -138,7 +138,7 @@ public class AutonomousDoubleSamplePerp extends LinearOpMode {
                 break;
         }
         robot.driveTrain.setPower(-0.7);
-        Thread.sleep(200);
+        Thread.sleep(600);
         //**/
         robot.driveTrain.setPower(0);
         Thread.sleep(200000);
