@@ -1,170 +1,183 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
-
-import java.security.Policy;
+import org.firstinspires.ftc.teamcode.constructs.Robot;
+import org.firstinspires.ftc.teamcode.constructs.Slides;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.AnalogButton;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.Button;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.DigitalButton;
+import org.firstinspires.ftc.teamcode.utilities.gamepad.ToggleButton;
+import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+import org.firstinspires.ftc.teamcode.utilities.misc.TeleOpMode;
 
 @TeleOp(name="TeleOpMain")
-public class TeleOpMain extends LinearOpMode {
+public class TeleOpMain extends TeleOpMode {
 
-    public DcMotor backLeft;
-    public DcMotor backRight;
-    public DcMotor frontLeft;
-    public DcMotor frontRight;
-    public DcMotor vl;
-    public DcMotor vr;
-    public DcMotor hl;
-    public DcMotor hr;
+    public Robot robot;
 
-    public CRServo intakeSpinLeft;
-    public CRServo intakeSpinRight;
-    public Servo intakeAngleLeft;
-    public Servo intakeAngleRight;
-
-    public Servo dumpAngleLeft;
-    public Servo dumpAngleRight;
-
+    public volatile float powerScalar = 0.65f;
+    public volatile boolean intakeOn = false;
+    public volatile boolean isOuterControl = true;
 
     public void runOpMode() throws InterruptedException {
+        StaticLog.clearLog();
+        robot = new Robot(hardwareMap);
+        robot.init();
+        /**
+         * DRIVE CONTROLS
+         */
+        //Slow Mode Button
+        addButton(new ToggleButton(Key.RIGHT_STICK) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                switch (currentState) {
+                    case 0:
+                        powerScalar = 0.65f;
+                        break;
+                    case 1:
+                        powerScalar = 0.35f;
+                        break;
+                }
+            }
+        });
+        //Mecanum drive train code
+        addButton(new Button(new Key[]{Key.LEFT_X,Key.LEFT_Y,Key.RIGHT_X}) {
+            @Override
+            public void update() {
+                float gamepad1LeftY = (float) (double) -keyValues.get(1);
+                float gamepad1LeftX = (float) (double) keyValues.get(0);
+                float gamepad1RightX = (float) (double) keyValues.get(2);
 
-        backLeft = hardwareMap.dcMotor.get("bl");
-        backRight = hardwareMap.dcMotor.get("br");
-        frontLeft = hardwareMap.dcMotor.get("fl");
-        frontRight = hardwareMap.dcMotor.get("fr");
-        vl = hardwareMap.get(DcMotor.class, "vl");
-        vr = hardwareMap.get(DcMotor.class, "vr");
-        hl = hardwareMap.get(DcMotor.class, "hl");
-        hr = hardwareMap.get(DcMotor.class, "hr");
+                float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+                float FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
+                float BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
+                float BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
 
-        intakeSpinLeft = hardwareMap.get(CRServo.class, "il");
-        intakeSpinRight = hardwareMap.get(CRServo.class, "ir");
-        intakeAngleLeft = hardwareMap.get(Servo.class, "al");
-        intakeAngleRight = hardwareMap.get(Servo.class, "ar");
+                FrontRight = -scaleInput(FrontRight);
+                FrontLeft = -scaleInput(FrontLeft);
+                BackRight = -scaleInput(BackRight);
+                BackLeft = -scaleInput(BackLeft);
 
-        dumpAngleLeft = hardwareMap.get(Servo.class, "dl");
-        dumpAngleRight = hardwareMap.get(Servo.class, "dr");
+                FrontRight = Range.clip(FrontRight, -1, 1);
+                FrontLeft = Range.clip(FrontLeft, -1, 1);
+                BackLeft = Range.clip(BackLeft, -1, 1);
+                BackRight = Range.clip(BackRight, -1, 1);
 
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        vl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        vr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                getRobot().driveTrain.setPower(-1*powerScalar*FrontLeft, -1*powerScalar*BackLeft, powerScalar*FrontRight, powerScalar*BackRight);
+            }
+        });
+        /**
+         * INTAKE CONTROLS
+         */
+        //Toggles arm for collection
+        addButton(new Button(new Key[]{Key.RIGHT_BUMPER, Key.B}) {
+            @Override
+            public void update() {
+                if(this.keyValues.get(0) > 0.5 && this.keyValues.get(1) < 0.5) {
+                    isOuterControl = true;
+                    getRobot().slides.setArmPosition(Slides.Arm.OUT);
+                    getRobot().slides.setIntakeDirection(Slides.Intake.INTAKE);
+                } else if (this.keyValues.get(0) < 0.5 && this.keyValues.get(1) < 0.5 && isOuterControl) {
+                    getRobot().slides.setArmPosition(Slides.Arm.REST);
+                    getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                }
+            }
+        });
+        addButton(new ToggleButton(new Key[]{Key.B, Key.RIGHT_BUMPER}) {
+            @Override
+            public void setOutput(int currentState, double value) {
+                switch (currentState) {
+                    case 0:
+                        getRobot().slides.setArmPosition(Slides.Arm.REST);
+                        getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                        break;
+                    case 1:
+                        isOuterControl = false;
+                        getRobot().slides.setArmPosition(Slides.Arm.IN);
+                        getRobot().slides.setIntakeDirection(Slides.Intake.OUTPUT);
+                        break;
+                }
+            }
+        });
 
+        /*
+         * SLIDE CONTROLS
+         */
+        addButton(new Button(new TeleOpMode.Key[]{Key.A,Key.Y}) {
+            @Override
+            public void update() {
+                if(keyValues.get(0) > 0.5) {
+                    getRobot().slides.setPower(0.82);
+                } else if (keyValues.get(1) > 0.5) {
+                    getRobot().slides.setPower(-0.82);
+                } else {
+                    getRobot().slides.setPower(0);
+                }
+            }
+        });
+        /**
+         * LIFT CODE
+         */
+        //Maximum lift force
+        addButton(new DigitalButton(Key.DPAD_DOWN) {
+            @Override
+            public void setOutput() {
+                getRobot().lift.setPower(1);
+            }
+        });
+        //Slow lift control
+        addButton(new Button(new Key[]{Key.DPAD_DOWN, Key.LEFT_TRIGGER, Key.RIGHT_TRIGGER}) {
+            @Override
+            public void update() {
+                if(this.keyValues.get(0) < 0.5) {
+                    if(this.keyValues.get(1) > 0.5) {
+                        getRobot().lift.setPower(0.4*this.keyValues.get(1));
+                    } else if (this.keyValues.get(2) > 0.5) {
+                        getRobot().lift.setPower(-0.4*this.keyValues.get(2));
+                    } else {
+                        getRobot().lift.setPower(0);
+                    }
+                }
+            }
+        });
+        /*
+         * DEPOSITION CONTROL
+         */
+        //Deposit from middle
+        addButton(new AnalogButton(Key.LEFT_BUMPER) {
+            @Override
+            public void setOutput(double value) {
+                if(value > 0.5) {
+                    getRobot().setDeposit(Robot.Deposit.DEPOSIT);
+                } else {
+                    getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                }
+            }
+        });
+         /**/
         waitForStart();
-        int count = 0;
-        boolean toggle = false;
-        boolean pressed = false;
+        //Loop variables
         while (opModeIsActive()) {
-
-            //REAL CODE
-            float gamepad1LeftY = -gamepad1.left_stick_y;
-            float gamepad1LeftX = gamepad1.left_stick_x;
-            float gamepad1RightX = gamepad1.right_stick_x;
-
-            float FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;
-            float BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-            float BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;
-
-            FrontRight = -scaleInput(FrontRight);
-            FrontLeft = -scaleInput(FrontLeft);
-            BackRight = -scaleInput(BackRight);
-            BackLeft = -scaleInput(BackLeft);
-
-            FrontRight = Range.clip(FrontRight, -1, 1);
-            FrontLeft = Range.clip(FrontLeft, -1, 1);
-            BackLeft = Range.clip(BackLeft, -1, 1);
-            BackRight = Range.clip(BackRight, -1, 1);
-
-
-            double liftPower = gamepad1.right_trigger > 0.05 ? gamepad1.right_trigger : -1*gamepad1.left_trigger;
-            liftPower = 0.35*Math.signum(liftPower)*Math.pow(liftPower,2);
-            if (gamepad1.dpad_down) {
-                vl.setPower(1);
-                vr.setPower(-1);
-            } else {
-                vl.setPower(-liftPower);
-                vr.setPower(liftPower);
-            }
-
-            if(gamepad1.a) {
-                hl.setPower(0.5);
-                hr.setPower(-0.5);
-            } else if (gamepad1.y) {
-                hl.setPower(-0.5);
-                hr.setPower(0.5);
-            } else {
-                hl.setPower(0);
-                hr.setPower(0);
-            }
-
-            //intake spin
-            if (gamepad1.left_bumper) {
-                intakeSpinLeft.setPower(1);
-                intakeSpinRight.setPower(-1);
-            } else if (gamepad1.right_bumper) {
-                intakeSpinLeft.setPower(-1);
-                intakeSpinRight.setPower(1);
-            } //else {
-                //il.setPower(0);
-            //    ir.setPower(0);
-            //}
-
-//REAL CODE
-            if(gamepad1.right_stick_button && !pressed) {
-                toggle = !toggle;
-                pressed = true;
-            } else if (!gamepad1.right_stick_button && pressed) {
-                pressed = false;
-            }
-            if(toggle) {
-                intakeAngleLeft.setPosition(0.97);
-                intakeAngleRight.setPosition(0.03);
-            } else {
-                intakeAngleLeft.setPosition(0.03);
-                intakeAngleRight.setPosition(0.97);
-            }
-            if (gamepad1.x) {
-                //intake down
-                //dump middle
-                dumpAngleRight.setPosition(0.85);
-                dumpAngleLeft.setPosition(0.37);
-            } else if (gamepad1.right_stick_button) {
-                //dump down
-                dumpAngleLeft.setPosition(0.24);
-                dumpAngleRight.setPosition(0.97);
-            } else if (gamepad1.b) {
-                //dump up
-                dumpAngleRight.setPosition(0.1);
-                dumpAngleLeft.setPosition(0.97);
-            }
-
-            frontRight.setPower(0.55*FrontRight);
-            frontLeft.setPower(0.55*FrontLeft);
-            backLeft.setPower(0.55*BackLeft);
-            backRight.setPower(0.55*BackRight);
-
-            telemetry.addLine("Front Right: " + Double.toString(FrontRight));
-            telemetry.addLine("Front Left: " + Double.toString(FrontLeft));
-            telemetry.addLine("Back Right: " + Double.toString(BackRight));
-            telemetry.addLine("Back Left: " + Double.toString(BackLeft));
+            updateButtons();
+            telemetry.addLine("Power Scalar: " + Float.toString(powerScalar));
             telemetry.update();
-
             Thread.sleep(50);
         }
     }
 
+    public synchronized void setIntakeOn(boolean isIntakeOn) {
+        this.intakeOn = isIntakeOn;
+    }
 
-    float scaleInput(float dVal) {
+    public synchronized boolean getIsIntakeOn() {return this.intakeOn;}
+
+    public synchronized Robot getRobot() {
+        return this.robot;
+    }
+
+    public float scaleInput(float dVal) {
         float[] scaleArray = {0.0f, 0.05f, 0.09f, 0.10f, 0.12f, 0.15f, 0.18f, 0.24f,
                 0.30f, 0.36f, 0.43f, 0.50f, 0.60f, 0.72f, 0.85f, 1.00f, 1.00f};
 
@@ -193,4 +206,3 @@ public class TeleOpMain extends LinearOpMode {
         return dScale;
     }
 }
-

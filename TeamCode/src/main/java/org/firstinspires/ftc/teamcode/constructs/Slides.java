@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.constructs;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 
 /**
  * Created by LeviG on 1/12/2019.
@@ -13,9 +16,10 @@ public class Slides {
     private volatile HardwareMap map;
 
     private volatile DcMotor hl;
-    private volatile DcMotor hr;
 
     private volatile Servo ar;
+
+    private volatile CRServo ir;
 
     public enum Arm {
         OUT,
@@ -23,28 +27,57 @@ public class Slides {
         IN
     }
 
+    public enum Intake {
+        INTAKE,
+        STOPPED,
+        OUTPUT
+    }
+
     public Slides(HardwareMap map) {
         this.map = map;
 
         hl = map.get(DcMotor.class, "hl");
-        hr = map.get(DcMotor.class, "hr");
 
         ar = map.get(Servo.class, "ar");
+        ir = map.get(CRServo.class, "ir");
     }
 
     public synchronized void setPower(double power) {
         hl.setPower(power);
-        hr.setPower(-power);
     }
 
-    public void setArmPosition(Arm pos) {
+    public synchronized void setIntakeDirection(Intake direction) {
+        switch (direction) {
+            case OUTPUT:
+                setIntakePower(1);
+                break;
+            case INTAKE:
+                setIntakePower(-1);
+                break;
+            case STOPPED:
+                setIntakePower(0);
+                break;
+            default:
+                setIntakePower(0);
+                break;
+        }
+    }
+
+    public synchronized void setIntakePower(double power) {
+        ir.setPower(MathFTC.clamp(power, -1, 1));
+    }
+
+    public synchronized void setArmPosition(Arm pos) {
         switch (pos) {
             case OUT:
-                setArmPosition(0.97);
+                ar.setPosition(1);
+                break;
             case IN:
-                setArmPosition(0.03);
+                ar.setPosition(0);
+                break;
             case REST:
-                setArmPosition(0.5);
+                ar.setPosition(0.5);
+                break;
         }
     }
 
@@ -54,15 +87,13 @@ public class Slides {
 
     public synchronized void init() {
         hl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        hr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public synchronized void stop() {
         setPower(0);
         ar.close();
         hl.close();
-        hr.close();
+        ir.close();
     }
 }
