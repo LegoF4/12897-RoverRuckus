@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
-@TeleOp(name="Slide Test")
+@TeleOp(name="Slide Test", group="Debug")
 public class SlideTest extends LinearOpMode {
 
     public DcMotor v1;

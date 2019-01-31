@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
  * Created by LeviG on 1/4/2019.
  */
 @TeleOp(name = "Intake Test")
+@Disabled
 public class IntakeTest extends LinearOpMode {
 
     CRServo ir;

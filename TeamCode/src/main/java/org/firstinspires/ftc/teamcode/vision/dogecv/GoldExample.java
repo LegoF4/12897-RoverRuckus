@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.opencv.core.Size;
 
 
-@TeleOp(name="Gold Example", group="DogeCV")
+@TeleOp(name="Gold Example", group="Debug")
 public class GoldExample extends OpMode {
 
     private GoldDetector detector;

@@ -66,8 +66,10 @@ public class GoldDetector extends DogeCVDetector {
         //Imgproc.rectangle(input, new Point(0, 0), new Point(input.width()-1, (int) (0.42*input.height()-1)), new Scalar(0,0,0), -1);
 
         //Perp start crop
-        Imgproc.rectangle(input, new Point(0,0), new Point(input.width()*0.5,input.height()), new Scalar(0,0,0), -1);
+        //Imgproc.rectangle(input, new Point(0,0), new Point(input.width()*0.5,input.height()), new Scalar(0,0,0), -1);
+        //Imgproc.rectangle(input, new Point(input.width(),input.height()), new Point(0,input.height()-100), new Scalar(0,0,0), -1);
 
+        Imgproc.rectangle(input, new Point(input.width()*0.6,0), new Point(input.width(),input.height()), new Scalar(0,0,0), -1);
         // Copy the input mat to our working mats, then release it for memory
         input.copyTo(displayMat);
         input.copyTo(workingMat);
@@ -115,7 +117,7 @@ public class GoldDetector extends DogeCVDetector {
             found = false;
         }
 
-        Imgproc.circle(displayMat, new Point(10, 460), 20, new Scalar(255, 0, 255), -1);
+        //Imgproc.circle(displayMat, new Point(10, 460), 20, new Scalar(255, 0, 255), -1);
 
         Imgproc.putText(displayMat, "Display Size: " + displayMat.size().toString(), new Point(20,20), 0, 1, new Scalar(255,255,0), 1);
         //Print result

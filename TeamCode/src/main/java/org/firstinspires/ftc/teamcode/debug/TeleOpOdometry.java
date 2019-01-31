@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.debug;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utilities.hardware.EncoderMA3;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 
-@TeleOp(name="TeleOpOdometry")
+@TeleOp(name="TeleOpOdometry", group="Debug")
 public class TeleOpOdometry extends LinearOpMode {
 
     public DcMotor backLeft;

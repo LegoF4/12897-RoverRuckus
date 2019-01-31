@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
 import org.firstinspires.ftc.teamcode.constructs.Slides;
-import org.firstinspires.ftc.teamcode.navigation.Odometry;
 import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
@@ -18,8 +17,8 @@ import org.opencv.core.Size;
 /**
  * Created by LeviG on 12/16/2018.
  */
-@Autonomous(name = "Autonomous Double Sample")
-public class AutonomousDoubleSample extends LinearOpMode {
+@Autonomous(name = "Autonomous Single Sample")
+public class AutonomousSingleSample extends LinearOpMode {
 
     MineralPosition mineralPosition = null;
     Robot robot;

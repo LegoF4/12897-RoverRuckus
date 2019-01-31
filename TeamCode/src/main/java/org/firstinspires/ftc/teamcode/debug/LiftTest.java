@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 
-@TeleOp(name="Lift Test")
+@TeleOp(name="Lift Test", group="Debug")
 public class LiftTest extends LinearOpMode {
 
     public DcMotor v1;

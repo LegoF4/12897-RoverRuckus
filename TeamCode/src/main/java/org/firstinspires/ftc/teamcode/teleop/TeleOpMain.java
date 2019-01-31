@@ -17,9 +17,13 @@ public class TeleOpMain extends TeleOpMode {
 
     public Robot robot;
 
-    public volatile float powerScalar = 0.65f;
-    public volatile boolean intakeOn = false;
-    public volatile boolean isOuterControl = true;
+    public volatile float powerScalar = 0.65f; //A power scalar by which the drive train motor powers are scaled
+    public volatile boolean intakeOn = false; //True if the intake is supposed to be moving
+    public volatile boolean liftIsMoving = false; //True if the user is holding any key that moves the lift
+    public static final long wait = 6000; //Pause before setting default intake position
+    public volatile long startTime; //Time of game start
+
+    public volatile boolean isHangMode = false; //True when in hang mode
 
     public void runOpMode() throws InterruptedException {
         StaticLog.clearLog();
@@ -72,31 +76,44 @@ public class TeleOpMain extends TeleOpMode {
          * INTAKE CONTROLS
          */
         //Toggles arm for collection
-        addButton(new Button(new Key[]{Key.RIGHT_BUMPER, Key.B}) {
+        addButton(new Button(new Key[]{Key.RIGHT_BUMPER, Key.LEFT_BUMPER}) {
             @Override
             public void update() {
-                if(this.keyValues.get(0) > 0.5 && this.keyValues.get(1) < 0.5) {
-                    isOuterControl = true;
-                    getRobot().slides.setArmPosition(Slides.Arm.OUT);
-                    getRobot().slides.setIntakeDirection(Slides.Intake.INTAKE);
-                } else if (this.keyValues.get(0) < 0.5 && this.keyValues.get(1) < 0.5 && isOuterControl) {
-                    getRobot().slides.setArmPosition(Slides.Arm.REST);
-                    getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                if(!isHangMode) {
+                    if (this.keyValues.get(0) > 0.5 && this.keyValues.get(1) < 0.5) {
+                        getRobot().slides.setArmPosition(Slides.Arm.OUT);
+                        getRobot().slides.setIntakeDirection(Slides.Intake.INTAKE);
+                    } else if (this.keyValues.get(0) < 0.5 && this.keyValues.get(1) < 0.5 && System.currentTimeMillis() > startTime + wait) {
+                        getRobot().slides.setArmPosition(Slides.Arm.REST);
+                        getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                    }
                 }
             }
         });
-        addButton(new ToggleButton(new Key[]{Key.B, Key.RIGHT_BUMPER}) {
+        addButton(new DigitalButton(new Key[]{Key.LEFT_BUMPER}) {
+            @Override
+            public void setOutput() {
+                if(!isHangMode) {
+                    getRobot().slides.setArmPosition(Slides.Arm.IN);
+                    getRobot().slides.setIntakeDirection(Slides.Intake.OUTPUT);
+                }
+            }
+        });
+        /**
+        * HANG MODE BUTTON
+         */
+        addButton(new ToggleButton(new Key[]{Key.X}) {
             @Override
             public void setOutput(int currentState, double value) {
                 switch (currentState) {
                     case 0:
-                        getRobot().slides.setArmPosition(Slides.Arm.REST);
-                        getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                        isHangMode = false;
                         break;
                     case 1:
-                        isOuterControl = false;
+                        isHangMode = true;
+                        powerScalar = 0.35f;
                         getRobot().slides.setArmPosition(Slides.Arm.IN);
-                        getRobot().slides.setIntakeDirection(Slides.Intake.OUTPUT);
+                        getRobot().setDeposit(Robot.Deposit.HIGH);
                         break;
                 }
             }
@@ -121,22 +138,36 @@ public class TeleOpMain extends TeleOpMode {
          * LIFT CODE
          */
         //Maximum lift force
-        addButton(new DigitalButton(Key.DPAD_DOWN) {
+        addButton(new DigitalButton(new Key[]{Key.DPAD_DOWN, Key.LEFT_STICK}) {
             @Override
             public void setOutput() {
+                liftIsMoving = true;
+                if(!isHangMode && this.keyValues.get(1) < 0.5) getRobot().setDeposit(Robot.Deposit.MIDDLE);
                 getRobot().lift.setPower(1);
             }
         });
+        addButton(new DigitalButton(new Key[]{Key.DPAD_UP,Key.LEFT_STICK}) {
+            @Override
+            public void setOutput() {
+                liftIsMoving = true;
+                if(!isHangMode && this.keyValues.get(1) < 0.5) getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                getRobot().lift.setPower(-1); }
+        });
         //Slow lift control
-        addButton(new Button(new Key[]{Key.DPAD_DOWN, Key.LEFT_TRIGGER, Key.RIGHT_TRIGGER}) {
+        addButton(new Button(new Key[]{Key.DPAD_DOWN, Key.LEFT_TRIGGER, Key.RIGHT_TRIGGER, Key.DPAD_UP, Key.LEFT_STICK}) {
             @Override
             public void update() {
-                if(this.keyValues.get(0) < 0.5) {
+                if(this.keyValues.get(0) < 0.5 && this.keyValues.get(3) < 0.5) {
                     if(this.keyValues.get(1) > 0.5) {
+                        liftIsMoving = true;
+                        if(!isHangMode && this.keyValues.get(4) < 0.5) getRobot().setDeposit(Robot.Deposit.MIDDLE);
                         getRobot().lift.setPower(0.4*this.keyValues.get(1));
                     } else if (this.keyValues.get(2) > 0.5) {
+                        liftIsMoving = true;
+                        if(!isHangMode && this.keyValues.get(4) < 0.5) getRobot().setDeposit(Robot.Deposit.MIDDLE);
                         getRobot().lift.setPower(-0.4*this.keyValues.get(2));
                     } else {
+                        liftIsMoving = false;
                         getRobot().lift.setPower(0);
                     }
                 }
@@ -146,22 +177,26 @@ public class TeleOpMain extends TeleOpMode {
          * DEPOSITION CONTROL
          */
         //Deposit from middle
-        addButton(new AnalogButton(Key.LEFT_BUMPER) {
+        addButton(new AnalogButton(Key.LEFT_STICK) {
             @Override
             public void setOutput(double value) {
-                if(value > 0.5) {
-                    getRobot().setDeposit(Robot.Deposit.DEPOSIT);
-                } else {
-                    getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                if(!isHangMode) {
+                    if(this.keyValues.get(0) > 0.5) {
+                        getRobot().setDeposit(Robot.Deposit.DEPOSIT);
+                    } else if (this.keyValues.get(0) < 0.5 && !liftIsMoving) {
+                        getRobot().setDeposit(Robot.Deposit.DOWN);
+                    }
                 }
             }
         });
          /**/
         waitForStart();
+        startTime = System.currentTimeMillis();
         //Loop variables
         while (opModeIsActive()) {
             updateButtons();
-            telemetry.addLine("Power Scalar: " + Float.toString(powerScalar));
+            telemetry.addLine("Speed: " + (powerScalar > 0.4 ? "FAST" : "SLOW"));
+            telemetry.addLine("Hang Mode: " + Boolean.toString(isHangMode));
             telemetry.update();
             Thread.sleep(50);
         }

@@ -20,6 +20,7 @@ public class Robot {
     public enum Deposit {
         DEPOSIT,
         MIDDLE,
+        HIGH,
         DOWN
     }
 
@@ -61,14 +62,18 @@ public class Robot {
                             dr.setPosition(0.10);
                             break;
                         case MIDDLE:
-                            dl.setPosition(0.37);
-                            dr.setPosition(0.85);
+                            dl.setPosition(0.57);
+                            dr.setPosition(0.65);
                             break;
                         case DOWN:
                             //dl.setPosition(0.24);
                             //dr.setPosition(0.97);
                             dl.setPosition(0.305);
                             dr.setPosition(0.905);
+                            break;
+                        case HIGH:
+                            dl.setPosition(0.47);
+                            dr.setPosition(0.70);
                             break;
                     }
                 }

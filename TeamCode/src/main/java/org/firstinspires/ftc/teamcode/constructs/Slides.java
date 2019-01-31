@@ -49,10 +49,10 @@ public class Slides {
     public synchronized void setIntakeDirection(Intake direction) {
         switch (direction) {
             case OUTPUT:
-                setIntakePower(1);
+                setIntakePower(-1);
                 break;
             case INTAKE:
-                setIntakePower(-1);
+                setIntakePower(1);
                 break;
             case STOPPED:
                 setIntakePower(0);
@@ -69,10 +69,10 @@ public class Slides {
 
     public synchronized void setArmPosition(Arm pos) {
         switch (pos) {
-            case OUT:
+            case IN:
                 ar.setPosition(1);
                 break;
-            case IN:
+            case OUT:
                 ar.setPosition(0);
                 break;
             case REST:

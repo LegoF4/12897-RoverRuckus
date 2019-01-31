@@ -78,4 +78,5 @@ public abstract class ToggleButton extends Button {
     }
 
     public abstract void setOutput(int currentState, double value);
+
 }

@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.debug.old;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
 import org.firstinspires.ftc.teamcode.navigation.Position;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
  * Created by LeviG on 12/4/2018.
  */
 @Autonomous(name = "Line Test")
+@Disabled
 public class LineDrive extends LinearOpMode {
 
     public volatile Robot robot;

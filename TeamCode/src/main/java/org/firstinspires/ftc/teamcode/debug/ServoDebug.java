@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 /**
  * Created by LeviG on 1/5/2019.
  */
-@TeleOp(name = "Servo Test")
+@TeleOp(name = "Servo Test", group="Debug")
 public class ServoDebug extends LinearOpMode{
 
     Robot robot;

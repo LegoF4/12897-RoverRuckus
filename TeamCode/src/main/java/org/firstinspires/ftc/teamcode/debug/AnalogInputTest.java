@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 /**
  * Created by LeviG on 10/28/2018.
  */
-@TeleOp(name = "Analog Input Test")
+@TeleOp(name = "Analog Input Test", group="Debug")
 public class AnalogInputTest extends LinearOpMode {
 
     AnalogInput inputC;
