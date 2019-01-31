@@ -81,7 +81,7 @@ public class AutonomousDoubleSample extends LinearOpMode {
             if(!found) mineralPosition = MineralPosition.RIGHT;
             telemetry.addLine("Mineral Position: " + mineralPosition.name());
             telemetry.update();
-            Thread.sleep(300);
+            Thread.sleep(500);
             robot.lift.setPower(0.25);
             Thread.sleep(250);
             robot.lift.setPower(0.2);

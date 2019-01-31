@@ -80,7 +80,7 @@ public class AutonomousSingleSample extends LinearOpMode {
             if(!found) mineralPosition = MineralPosition.RIGHT;
             telemetry.addLine("Mineral Position: " + mineralPosition.name());
             telemetry.update();
-            Thread.sleep(300);
+            Thread.sleep(500);
             robot.lift.setPower(0.25);
             Thread.sleep(250);
             robot.lift.setPower(0.2);
@@ -160,43 +160,12 @@ public class AutonomousSingleSample extends LinearOpMode {
         Thread.sleep(150);
         strafeInches(-1, 0.28);
         pos = robot.driveTrain.getPosition();
-        switch (mineralPosition) {
-            case LEFT:
-                driveInches(-(83-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.35, 0.1);
-                turnDegrees(-135,0.1);
-                strafeInches(-33,0.35);
-                strafeInches(31,0.6);
-                break;
-            case CENTER:
-                driveInches(-(70-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.3, 0.1);
-                turnDegrees(-135,0.1);
-                strafeInches(-19,0.35);
-                strafeInches(17,0.6);
-                break;
-            case RIGHT:
-                driveInches(-(54-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.3, 0.1);
-                turnDegrees(-135,0.1);
-                strafeInches(-7,0.35);
-                strafeInches(5,0.6);
-                driveInches(-18, 0.3);
-                break;
-        }
+        driveInches(-(83-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.35, 0.1);
         robot.setDeposit(Robot.Deposit.DEPOSIT);
         robot.driveTrain.setPower(0);
         Thread.sleep(1600);
         robot.setDeposit(Robot.Deposit.MIDDLE);
-        //Drives to crater
-        switch (mineralPosition) {
-            case RIGHT:
-                driveInches(35, 0.7);
-                break;
-            case CENTER:
-                driveInches(51, 0.7);
-                break;
-            case LEFT:
-                driveInches(62, 0.7);
-                break;
-        }
+        driveInches(62, 0.7);
         robot.driveTrain.setPower(-0.7);
         Thread.sleep(600);
         //**/
