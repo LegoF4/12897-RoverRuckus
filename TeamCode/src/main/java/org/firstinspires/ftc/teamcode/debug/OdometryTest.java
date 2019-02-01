@@ -13,8 +13,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 /**
  * Created by LeviG on 9/27/2018.
  */
-@TeleOp(name = "Odometry Test")
-@Disabled
+@TeleOp(name = "Odometry Test", group="Debug")
 public class OdometryTest extends LinearOpMode {
 
     private Odometry odometricTracker;
@@ -26,7 +25,7 @@ public class OdometryTest extends LinearOpMode {
         Encoder left = new EncoderMA3(this.hardwareMap.analogInput.get("left"));
         Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
         Encoder right = new EncoderMA3(this.hardwareMap.analogInput.get("right"));
-        odometricTracker = new Odometry(left, center, right, 25);
+        odometricTracker = new Odometry(left, center, right, 25, 0, 0, 0);
         Thread.sleep(1000);
         odometricTracker.init();
         Thread.sleep(1000);
@@ -34,7 +33,7 @@ public class OdometryTest extends LinearOpMode {
         startTime = System.currentTimeMillis();
         StaticLog.clearLog();
         waitForStart();
-        boolean live = false;
+        boolean live = true;
         while(this.opModeIsActive()) {
             if(live) {
                 Position pos =  odometricTracker.getPosition();
@@ -43,21 +42,13 @@ public class OdometryTest extends LinearOpMode {
                 telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
                 telemetry.update();
             }
-            Thread.sleep(200);
+            Thread.sleep(50);
         }
     }
 
     @Override
     public void stop() {
         odometricTracker.stopTracking();
-        StaticLog.addLine("Time Elapsed: " + Long.toString(System.currentTimeMillis()-startTime));
-        StaticLog.addLine("Ticks: " + Integer.toString(odometricTracker.getPositions().size()));
-        for(Position pos : odometricTracker.getPositions()) {
-            //StaticLog.addLine("X: " + Double.toString(pos.x) + ", Y: " + Double.toString(pos.y) + ", φ: " + Double.toString(pos.phi));
-            StaticLog.addLine("X " + Double.toString(pos.x));
-            StaticLog.addLine("Y " + Double.toString(pos.y));
-            StaticLog.addLine("P " + Double.toString(pos.phi));
-        }
         super.stop();
     }
 }

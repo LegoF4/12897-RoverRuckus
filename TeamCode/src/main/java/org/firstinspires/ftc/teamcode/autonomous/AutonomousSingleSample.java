@@ -88,9 +88,9 @@ public class AutonomousSingleSample extends LinearOpMode {
             robot.lift.setPower(0.1);
             Thread.sleep(350);
             robot.lift.setPower(-0.2);
-            Thread.sleep(750);
+            Thread.sleep(500);
             robot.lift.setPower(0);
-            Thread.sleep(750);
+            Thread.sleep(250);
             //Boots odometry
             robot.driveTrain.startOdometry();
             odTel = new OdometryTel();
@@ -101,7 +101,7 @@ public class AutonomousSingleSample extends LinearOpMode {
             Thread.sleep(200);
             robot.lift.setPower(0);
             //Slides hook out
-            driveInches(2,0.35);
+            driveInches(2,0.45);
         }
         //Starts position tracking
         if(!HANGS) {
@@ -151,24 +151,27 @@ public class AutonomousSingleSample extends LinearOpMode {
         strafeInches(-17-robot.driveTrain.getPosition().y, 0.3);
         turnDegrees(0, 0.1);
         //Moves forward
-        driveInches(35-robot.driveTrain.getPosition().x,0.4);
+        driveInches(35-robot.driveTrain.getPosition().x,0.5);
         //Turns 45 degrees
-        turnDegrees(-135,0.4, 0.15);
+        turnDegrees(-135,0.40);
         robot.driveTrain.setPower(0.55, -0.55, -0.55, 0.55);
         Thread.sleep(1500);
         robot.driveTrain.setPower(0);
         Thread.sleep(150);
         strafeInches(-1, 0.28);
         pos = robot.driveTrain.getPosition();
-        driveInches(-(83-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.35, 0.1);
+        driveInches(-(75-pos.x*MathFTC.cos45+pos.y*MathFTC.sin45), 0.3, 0.1);
         robot.setDeposit(Robot.Deposit.DEPOSIT);
         robot.driveTrain.setPower(0);
         Thread.sleep(1600);
         robot.setDeposit(Robot.Deposit.MIDDLE);
-        driveInches(62, 0.7);
+        driveInches(51, 0.7);
         robot.driveTrain.setPower(-0.7);
         Thread.sleep(600);
-        //**/
+        robot.driveTrain.setPower(-0.3);
+        while(opModeIsActive()) {
+            Thread.sleep(10);
+        }
         robot.driveTrain.setPower(0);
     }
 
