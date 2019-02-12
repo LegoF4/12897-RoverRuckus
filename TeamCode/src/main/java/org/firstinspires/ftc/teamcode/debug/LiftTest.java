@@ -28,7 +28,7 @@ public class LiftTest extends LinearOpMode {
                 power = 0.4*Math.signum(gamepad1.right_stick_y)*Math.pow(gamepad1.right_stick_y,2);
             }
             v1.setPower(power);
-            v2.setPower(-power);
+            v2.setPower(power);
             telemetry.addLine("Power: " + Double.toString(power));
             telemetry.update();
             Thread.sleep(50);
