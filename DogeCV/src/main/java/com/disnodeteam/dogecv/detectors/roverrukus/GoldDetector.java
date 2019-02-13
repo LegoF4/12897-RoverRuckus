@@ -30,9 +30,9 @@ public class GoldDetector extends DogeCVDetector {
 
     // Defining Mats to be used.
     private Mat displayMat = new Mat(); // Display debug info to the screen (this is what is returned)
-    private Mat workingMat = new Mat(); // Used for preprocessing and working with (blurring as an example)
+    private Mat workingMat = new Mat(); // Used for pre-processing and working with (blurring as an example)
     private Mat maskYellow = new Mat(); // Yellow Mask returned by color filter
-    private Mat hierarchy  = new Mat(); // hierarchy used by coutours
+    private Mat hierarchy  = new Mat(); // hierarchy used by contours
 
     // Results of the detector
     private boolean found    = false; // Is the gold mineral found
@@ -60,16 +60,6 @@ public class GoldDetector extends DogeCVDetector {
     @Override
     public Mat process(Mat input) {
 
-        //Cropping code. Removes upper third.
-        //Imgproc.rectangle(input, new Point((int) (input.width()*0.71), 0), new Point(input.width()-1, input.height()-1), new Scalar(0,0,0), -1);
-        //Cropping code. Removes left third.
-        //Imgproc.rectangle(input, new Point(0, 0), new Point(input.width()-1, (int) (0.42*input.height()-1)), new Scalar(0,0,0), -1);
-
-        //Perp start crop
-        //Imgproc.rectangle(input, new Point(0,0), new Point(input.width()*0.5,input.height()), new Scalar(0,0,0), -1);
-        //Imgproc.rectangle(input, new Point(input.width(),input.height()), new Point(0,input.height()-100), new Scalar(0,0,0), -1);
-
-        Imgproc.rectangle(input, new Point(input.width()*0.6,0), new Point(input.width(),input.height()), new Scalar(0,0,0), -1);
         // Copy the input mat to our working mats, then release it for memory
         input.copyTo(displayMat);
         input.copyTo(workingMat);
@@ -88,19 +78,19 @@ public class GoldDetector extends DogeCVDetector {
 
         // Current result
         Rect bestRect = null;
-        double bestDiffrence = Double.MAX_VALUE; // MAX_VALUE since less diffrence = better
+        double bestDifference = Double.MAX_VALUE; // MAX_VALUE since less difference = better
 
         // Loop through the contours and score them, searching for the best result
         for(MatOfPoint cont : contoursYellow){
-            double score = calculateScore(cont); // Get the diffrence score using the scoring API
+            double score = calculateScore(cont); // Get the difference score using the scoring API
 
             // Get bounding rect of contour
             Rect rect = Imgproc.boundingRect(cont);
             Imgproc.rectangle(displayMat, rect.tl(), rect.br(), new Scalar(0,0,255),2); // Draw rect
 
             // If the result is better then the previously tracked one, set this rect as the new best
-            if(score < bestDiffrence){
-                bestDiffrence = score;
+            if(score < bestDifference){
+                bestDifference = score;
                 bestRect = rect;
             }
         }
@@ -117,11 +107,9 @@ public class GoldDetector extends DogeCVDetector {
             found = false;
         }
 
-        //Imgproc.circle(displayMat, new Point(10, 460), 20, new Scalar(255, 0, 255), -1);
 
-        Imgproc.putText(displayMat, "Display Size: " + displayMat.size().toString(), new Point(20,20), 0, 1, new Scalar(255,255,0), 1);
         //Print result
-        Imgproc.putText(displayMat,"Result: " + screenPosition.x +"/"+screenPosition.y, new Point(10,getAdjustedSize().height - 30),0,1, new Scalar(255,255,0),1);
+        Imgproc.putText(displayMat,"Result: " + screenPosition.x +"/"+screenPosition.y,new Point(10,getAdjustedSize().height - 30),0,1, new Scalar(255,255,0),1);
 
 
         return displayMat;
