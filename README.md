@@ -8,3 +8,4 @@ Regards,
 #Added Libraries
 * JAMA
 * OpenCV
+* DogeCV

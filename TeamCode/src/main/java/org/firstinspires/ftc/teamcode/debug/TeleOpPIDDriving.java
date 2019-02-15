@@ -1,18 +1,17 @@
 package org.firstinspires.ftc.teamcode.debug;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
+import org.firstinspires.ftc.teamcode.controllers.ControllerPID;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
 
 /**
  * Created by LeviG on 12/11/2018.
  */
-@TeleOp(name = "PID Tuning")
-@Disabled
-public class TeleOpPIDTuning extends LinearOpMode {
+@TeleOp(name = "PID Driving")
+public class TeleOpPIDDriving extends LinearOpMode {
 
     Robot robot;
 
@@ -27,11 +26,12 @@ public class TeleOpPIDTuning extends LinearOpMode {
         double increment = 0.001;
         int index = 0;
 
-        double kP = 0.01;
+        double kP = 0.02;
         double kI = 0;
         double kD = 0;
         double kA = 0;
         double kV = 0;
+        double power = 0.8;
 
         boolean incrementUp = false;
         boolean incrementDown = false;
@@ -50,7 +50,7 @@ public class TeleOpPIDTuning extends LinearOpMode {
                 incrementUp = false;
             } else if(gamepad1.left_bumper && !incrementDown) {
                 incrementDown = true;
-                increment *= 1/10;
+                increment *= 0.1;
             } else if (incrementDown && !gamepad1.left_bumper) {
                 incrementDown = false;
             }
@@ -74,6 +74,7 @@ public class TeleOpPIDTuning extends LinearOpMode {
                 if(index == 2) kD += increment;
                 if(index == 3) kA += increment;
                 if(index == 4) kV += increment;
+                if(index == 5) power += increment;
             } else if(gamepad1.dpad_down && !decrease) {
                 decrease = true;
                 if(index == 0) kP -= increment;
@@ -81,6 +82,7 @@ public class TeleOpPIDTuning extends LinearOpMode {
                 if(index == 2) kD -= increment;
                 if(index == 3) kA -= increment;
                 if(index == 4) kV -= increment;
+                if(index == 5) power -= increment;
             } else if (decrease && !gamepad1.dpad_down) {
                 decrease = false;
             }
@@ -90,19 +92,27 @@ public class TeleOpPIDTuning extends LinearOpMode {
                 robot.driveTrain.stopController();
                 Thread.sleep(20);
                 robot.driveTrain.setPower(0);
-            } else if (gamepad1.left_trigger > 0.5 && stop) {
+            } else if (gamepad1.left_trigger < 0.5 && stop) {
                 stop = false;
-            } if(gamepad1.right_trigger > 0.5 && !trigger) {
+            }
+
+            if(gamepad1.right_trigger > 0.5 && !trigger) {
                 trigger = true;
-                robot.driveTrain.degreeTurn(360,0.5,kP, kD, kI, kA, kV);
-            } else if (gamepad1.right_trigger > 0.5 && trigger) {
+                if(robot.driveTrain.controller != null) robot.driveTrain.stopController();
+                Thread.sleep(20);
+                robot.driveTrain.lineDrive(24, power, kP, kI, kD, kA, kV);
+            } else if (gamepad1.right_trigger < 0.5 && trigger) {
                 trigger = false;
             }
 
-            telemetry.addLine("P: " +  String.format("%.6f", kP) + "  I: " + String.format("%.6f", kI) + "  P: " + String.format("%.6f", kD));
-            telemetry.addLine("A: " +  String.format("%.6f", kA) + "  V: " + String.format("%.6f", kV));
+
+            telemetry.addLine("P: " +  String.format("%.6f", kP) + "  I: " + String.format("%.6f", kI) + "  D: " + String.format("%.6f", kD));
+            //telemetry.addLine("A: " +  String.format("%.6f", kA) + "  V: " + String.format("%.6f", kV));
+            telemetry.addLine("Power: " + String.format("%.6f", power));
             telemetry.addLine("Increment: " + Double.toString(increment) + " Index: " + Integer.toString(index));
+            telemetry.addLine("X-Coord: " + String.format("%.3f", robot.driveTrain.getPosition().x) + "  Y-Coord: " +  String.format("%.3f", robot.driveTrain.getPosition().y));
             telemetry.addLine("φ: " + String.format("%.3f", robot.driveTrain.getPosition().phi));
+            if(robot.driveTrain.controller != null) telemetry.addLine("e(t): " +  String.format("%.6f", ((ControllerPID) robot.driveTrain.controller).getError()));
             telemetry.update();
             Thread.sleep(50);
         }
@@ -111,6 +121,11 @@ public class TeleOpPIDTuning extends LinearOpMode {
     @Override
     public void stop() {
         robot.stop();
+        try {
+            Thread.sleep(30);
+        } catch (InterruptedException e) {
+
+        }
         super.stop();
     }
 }

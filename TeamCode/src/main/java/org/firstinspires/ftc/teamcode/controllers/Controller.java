@@ -54,7 +54,6 @@ public abstract class Controller {
      * Terminates the control loop
      */
     synchronized public void stopControl() {
-        isActive = false;
         controlLoop.interrupt();
     }
 

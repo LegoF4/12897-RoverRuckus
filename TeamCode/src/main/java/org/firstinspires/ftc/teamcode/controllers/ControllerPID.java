@@ -25,6 +25,8 @@ public abstract class ControllerPID extends Controller {
     public long T;
     public double powerThreshold;
     public double errorThreshold;
+
+    public static final boolean verbose = false;
     //Desired Position
 
     public synchronized double getkP() {
@@ -88,22 +90,22 @@ public abstract class ControllerPID extends Controller {
         long startTime = System.currentTimeMillis();
         double timeLast = startTime;
         long sleepTime;
-        while(isActive) {
+        while(this.isActive) {
             //Update error values
             errorPrevious = errorCurrent;
             errorCurrent = getError();
             forwardTerm = fF.getForwardTerm(System.currentTimeMillis()-startTime);
-            StaticLog.addLine("Forward is: " + Double.toString(forwardTerm));
+            if(verbose) StaticLog.addLine("Forward is: " + Double.toString(forwardTerm));
             if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
 
-            StaticLog.addLine("Error is: " + Double.toString(errorCurrent));
-            StaticLog.addLine("Total Error is: " + Double.toString(errorTotal));
-            StaticLog.addLine("Previous Error is: " + Double.toString(errorPrevious));//errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
+            if(verbose) StaticLog.addLine("Error is: " + Double.toString(errorCurrent));
+            if(verbose) StaticLog.addLine("Total Error is: " + Double.toString(errorTotal));
+            if(verbose) StaticLog.addLine("Previous Error is: " + Double.toString(errorPrevious));//errorTotal = MathFTC.clamp(errorTotal, -1/kI, 1/kI);
             //Find desired power adjustment
             double u;
             u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(T) + kI*errorTotal + forwardTerm;
             if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
-            synchronized (this) {setOutput(u);}
+            synchronized (this) {if(isActive) setOutput(u);}
             //Loop again in T ms
             try {
                 sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
