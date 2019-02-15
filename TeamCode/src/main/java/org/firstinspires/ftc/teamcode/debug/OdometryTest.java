@@ -26,9 +26,7 @@ public class OdometryTest extends LinearOpMode {
         Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
         Encoder right = new EncoderMA3(this.hardwareMap.analogInput.get("right"));
         odometricTracker = new Odometry(left, center, right, 25, 0, 0, 0);
-        Thread.sleep(1000);
-        odometricTracker.init();
-        Thread.sleep(1000);
+        Thread.sleep(200);
         odometricTracker.startTracking();
         startTime = System.currentTimeMillis();
         StaticLog.clearLog();

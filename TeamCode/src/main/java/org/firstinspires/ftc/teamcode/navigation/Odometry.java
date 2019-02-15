@@ -66,6 +66,10 @@ public class Odometry {
 
         @Override
         public void run() {
+            left.setZeroPosition();
+            center.setZeroPosition();
+            right.setZeroPosition();
+            StaticLog.addLine("Odometry Initiated At: " + Long.toString(System.currentTimeMillis()));
             double leftPrior = 0;
             double centerPrior = 0;
             double rightPrior = 0;
@@ -162,15 +166,6 @@ public class Odometry {
         }
     }
 
-    synchronized public void init() {
-        if(!isActive) {
-            left.setZeroPosition();
-            center.setZeroPosition();
-            right.setZeroPosition();
-        }
-        StaticLog.addLine("Odometry Initiated At: " + Long.toString(System.currentTimeMillis()));
-    }
-
     synchronized public Position getPosition() {
         double x = xT*Math.cos((Math.PI/180)*phi0)+yT*Math.sin((Math.PI/180)*phi0)+x0;
         double y = xT*Math.sin((Math.PI/180)*phi0)+yT*Math.cos((Math.PI/180)*phi0)+y0;
@@ -186,7 +181,7 @@ public class Odometry {
         isActive = true;
         controlLoop = new Odometry.OdometryThread();
         controlLoop.start();
-        //controlLoop.run();
+        //controlLoop.loop();
     }
 
     /**

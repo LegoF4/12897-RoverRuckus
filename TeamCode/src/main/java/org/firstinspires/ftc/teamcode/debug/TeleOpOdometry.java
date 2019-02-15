@@ -42,9 +42,7 @@ public class TeleOpOdometry extends LinearOpMode {
         Encoder center = new EncoderMA3(this.hardwareMap.analogInput.get("center"));
         Encoder right = new EncoderMA3(this.hardwareMap.analogInput.get("right"));
         odometricTracker = new Odometry(left, center, right, 100, 0, 11, 90);
-        Thread.sleep(1000);
-        odometricTracker.init();
-        Thread.sleep(1000);
+        Thread.sleep(200);
         odometricTracker.startTracking();
         startTime = System.currentTimeMillis();
 

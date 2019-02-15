@@ -66,8 +66,6 @@ public class Robot {
                             dr.setPosition(0.65);
                             break;
                         case DOWN:
-                            //dl.setPosition(0.24);
-                            //dr.setPosition(0.97);
                             dl.setPosition(0.305);
                             dr.setPosition(0.905);
                             break;

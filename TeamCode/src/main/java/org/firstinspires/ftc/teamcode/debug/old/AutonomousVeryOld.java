@@ -60,7 +60,6 @@ public class AutonomousVeryOld extends LinearOpMode {
         Thread.sleep(500);
         robot.driveTrain.setPower(0);
         Thread.sleep(500);
-        robot.driveTrain.odometricTracker.init();
         robot.driveTrain.startOdometry();
         odTel = new OdometryTel();
         odTel.start();

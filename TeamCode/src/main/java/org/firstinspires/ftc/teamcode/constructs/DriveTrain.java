@@ -40,7 +40,7 @@ public class DriveTrain {
     public static final double angularKV = 0; //V term for angular driving FF controller
 
     public volatile HardwareMap map;
-    public volatile Odometry odometricTracker;
+    private volatile Odometry odometricTracker;
     public volatile Controller controller;
 
     private volatile DcMotor fr;
@@ -51,8 +51,6 @@ public class DriveTrain {
     public volatile Encoder leftPod;
     public volatile Encoder centerPod;
     public volatile Encoder rightPod;
-
-    private volatile boolean isDriving;
 
     private volatile long startTime;
 
@@ -69,12 +67,10 @@ public class DriveTrain {
 
         odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100, x, y, phi);
         this.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        this.isDriving = false;
     }
 
     public DriveTrain(HardwareMap map) {
-        this(map, -7, 11, 0);
+        this(map, 0, 0, 0);
     }
 
     /**
@@ -84,6 +80,10 @@ public class DriveTrain {
      */
     public void lineDrive(final double distance, double power) throws InterruptedException {
         lineDrive(distance, power, linearKP, linearKI, linearKD, linearKA, linearKV);
+        while(isDriving()) {
+            Thread.sleep(20);
+        }
+        setPower(0);
     }
 
     public void lineDrive(final double distance, double power, double kP, double kI, double kD, double kA, double kV) throws InterruptedException {
@@ -95,7 +95,7 @@ public class DriveTrain {
         final double xF = startPos.x + distance*cos;
         final double yF = startPos.y + distance*sin;
 
-        controller = new ControllerPID(kP, kD, kI, 100, 0.02, 0.5, feedForward) {
+        controller = new ControllerPID(kP, kD, kI, 100, 0.02, 0.25, feedForward, true) {
             @Override
             public double getCurrentPosition() {
                 Position pos = odometricTracker.getPosition();
@@ -112,10 +112,12 @@ public class DriveTrain {
         controller.startControl();
     }
 
-    public volatile int ticks;
-
     public void degreeTurn(double degree, double power) throws InterruptedException{
         degreeTurn(degree, power, angularKP, angularKI, angularKD, angularKA, angularKV);
+        while(isDriving()) {
+            Thread.sleep(20);
+        }
+        setPower(0);
     }
 
     /**
@@ -124,13 +126,13 @@ public class DriveTrain {
      * @param power Relative power to turn at
      */
     public void degreeTurn(double degrees, double power, double kP, double kI, double kD, double kA, double kV) throws InterruptedException  {
-        ticks = 0;
+        this.stopController();
         final double powerUsed = power;
         FeedForward feedForward = new LinearMotionProfiler(degrees, alpha, omega, kA, kV);
         StaticLog.addLine("Feed Forward initiated");
         final Position startPos = odometricTracker.getPosition();
         StaticLog.addLine("Initial position retrieved");
-        controller = new ControllerPID(kP, kD, kI, 50, 0.02, 0.5, feedForward) {
+        controller = new ControllerPID(kP, kD, kI, 50, 0.02, 0.5, feedForward, true) {
             @Override
             public double getCurrentPosition() {
                 return getPosition().phi;
@@ -138,8 +140,6 @@ public class DriveTrain {
 
             @Override
             public void setOutput(double u) {
-                //StaticLog.addLine("Output is: " + Double.toString(u));
-                //ticks++;
                 u = powerUsed*u;
                 setPower(u,u,-u,-u);
             }
@@ -150,7 +150,12 @@ public class DriveTrain {
     }
 
     public synchronized void init() {
-        odometricTracker.init();
+
+    }
+
+    public synchronized boolean isDriving() {
+        if(controller != null) return controller.isDone();
+        else return false;
     }
 
     public synchronized void stop() {
@@ -161,6 +166,9 @@ public class DriveTrain {
         br.close();
         fr.close();
         fl.close();
+        if(leftPod instanceof EncoderMA3) ((EncoderMA3) leftPod).close();
+        if(centerPod instanceof EncoderMA3) ((EncoderMA3) centerPod).close();
+        if(rightPod instanceof EncoderMA3) ((EncoderMA3) rightPod).close();
     }
 
     public synchronized void startOdometry() {
@@ -168,11 +176,7 @@ public class DriveTrain {
         odometricTracker.startTracking();
     }
 
-
-
     public synchronized void stopOdometry() {
-        //StaticLog.addLine("Ticks Past: " + Integer.toString(odometricTracker.getPositions().size()));
-        //StaticLog.addLine("Elapsed Time: " + Long.toString(System.currentTimeMillis()-startTime));
         if(odometricTracker != null) odometricTracker.stopTracking();
     }
 

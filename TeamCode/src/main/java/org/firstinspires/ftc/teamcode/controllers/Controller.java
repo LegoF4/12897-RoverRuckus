@@ -27,24 +27,26 @@ public abstract class Controller {
     protected class ControlThread extends Thread {
         @Override
         public void run() {
-            Controller.this.run();
+            Controller.this.loop();
         }
         //Controls termination mechanic
         @Override
         public void interrupt() {
-            StaticLog.addLine("Controller Interrupted At: " + Long.toString(System.currentTimeMillis()));
-            isActive = false;
+            StaticLog.addLine("Controller is " + (isActive ? "is active" : "is inactive") + ". Interrupted At: " + Long.toString(System.currentTimeMillis()));
+            synchronized (this) {
+                isActive = false;
+            }
             super.interrupt();
         }
     }
 
-    protected abstract void run();
+    protected abstract void loop();
 
     /**
      * Starts a new instance of the control loop
      */
     synchronized public void startControl() {
-        StaticLog.addLine("i " + Long.toString(System.currentTimeMillis()));
+        StaticLog.addLine("Controller start at: " + Long.toString(System.currentTimeMillis()));
         isActive = true;
         controlLoop = new Controller.ControlThread();
         controlLoop.start();
@@ -62,4 +64,6 @@ public abstract class Controller {
      * @param u Output value from control equation
      */
     public abstract void setOutput(double u);
+
+    public abstract boolean isDone();
 }

@@ -103,5 +103,9 @@ public class EncoderMA3 extends Encoder {
         this.zeroPosition = position;
     }
 
+    public synchronized void close() {
+        encoder.close();
+    }
+
 
 }

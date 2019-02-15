@@ -99,7 +99,7 @@ public class TeleOpPIDTurning extends LinearOpMode {
 
             if(gamepad1.right_trigger > 0.5 && !trigger) {
                 trigger = true;
-                if(robot.driveTrain.controller != null) robot.driveTrain.stopController();
+                robot.driveTrain.stopController();
                 Thread.sleep(20);
                 robot.driveTrain.degreeTurn(180,power, kP, kI, kD, kA, kV);
             } else if (gamepad1.right_trigger < 0.5 && trigger) {

@@ -25,6 +25,10 @@ public abstract class ControllerPID extends Controller {
     public long T;
     public double powerThreshold;
     public double errorThreshold;
+    public boolean terminateOnStop;
+    public volatile boolean isDone = false;
+
+    public static final long TIMEOUT = 5000;
 
     public static final boolean verbose = false;
     //Desired Position
@@ -60,7 +64,7 @@ public abstract class ControllerPID extends Controller {
     public volatile double desiredPosition = 0;
 
     //Constructor
-    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold) {
+    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, boolean termOnStop) {
         super();
         //Sets parameters
         this.kP = kP;
@@ -71,18 +75,23 @@ public abstract class ControllerPID extends Controller {
         this.errorThreshold = errorThreshold;
         this.desiredPosition = 0;
         this.fF = new FeedNull();
+        this.terminateOnStop = termOnStop;
     }
 
     /**
      * Feed forward constructor
      */
-    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, FeedForward fF) {
-        this(kP, kD, kI, frequency, powerThreshold, errorThreshold);
+    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, FeedForward fF, boolean termOnStop) {
+        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, termOnStop);
         this.fF = fF;
     }
 
+    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold) {
+        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, false);
+    }
+
     @Override
-    protected void run() {
+    protected void loop() {
         double errorCurrent = getError();
         double errorPrevious = errorCurrent;
         double errorTotal = 0;
@@ -93,7 +102,13 @@ public abstract class ControllerPID extends Controller {
         while(this.isActive) {
             //Update error values
             errorPrevious = errorCurrent;
-            errorCurrent = getError();
+            synchronized (this) {
+                if(isActive) {
+                    errorCurrent = getError();
+                } else {
+                    break;
+                }
+            }
             forwardTerm = fF.getForwardTerm(System.currentTimeMillis()-startTime);
             if(verbose) StaticLog.addLine("Forward is: " + Double.toString(forwardTerm));
             if(Math.abs(errorCurrent) > errorThreshold) errorTotal += errorCurrent; //Includes powerThreshold to prevent long-term instability
@@ -105,19 +120,35 @@ public abstract class ControllerPID extends Controller {
             double u;
             u = kP*errorCurrent + kD*(errorCurrent-errorPrevious)/(T) + kI*errorTotal + forwardTerm;
             if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
-            synchronized (this) {if(isActive) setOutput(u);}
-            //Loop again in T ms
-            try {
-                sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
-                if(sleepTime > 0) {
-                    Thread.sleep(sleepTime);
+            synchronized (this) {
+                if(isActive) {
+                    errorCurrent = getError();
+                } else {
+                    setOutput(u);
                 }
-                //Terminate on exception
-            } catch(InterruptedException e) {
-                isActive = false;
-                break;
             }
-            timeLast = System.currentTimeMillis();
+            if(terminateOnStop) {
+                if((Math.abs(u) < powerThreshold && Math.abs(errorCurrent) < errorThreshold) || (System.currentTimeMillis() > (startTime + TIMEOUT))) {
+                    synchronized (this) {
+                        isDone = true;
+                        isActive = false;
+                    }
+                }
+            }
+            if(isActive) {
+                //Loop again in T ms
+                try {
+                    sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
+                    if(sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
+                    //Terminate on exception
+                } catch(InterruptedException e) {
+                    isActive = false;
+                    break;
+                }
+                timeLast = System.currentTimeMillis();
+            }
         }
     }
 
@@ -142,4 +173,7 @@ public abstract class ControllerPID extends Controller {
         return this.desiredPosition - this.getCurrentPosition();
     }
 
+    synchronized public boolean isDone() {
+        return this.isDone;
+    }
 }

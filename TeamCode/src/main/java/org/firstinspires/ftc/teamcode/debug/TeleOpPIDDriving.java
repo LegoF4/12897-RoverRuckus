@@ -26,9 +26,9 @@ public class TeleOpPIDDriving extends LinearOpMode {
         double increment = 0.001;
         int index = 0;
 
-        double kP = 0.02;
-        double kI = 0;
-        double kD = 0;
+        double kP = 0.032500;
+        double kI = 0.000001;
+        double kD = 0.000200;
         double kA = 0;
         double kV = 0;
         double power = 0.8;
@@ -98,7 +98,7 @@ public class TeleOpPIDDriving extends LinearOpMode {
 
             if(gamepad1.right_trigger > 0.5 && !trigger) {
                 trigger = true;
-                if(robot.driveTrain.controller != null) robot.driveTrain.stopController();
+                robot.driveTrain.stopController();
                 Thread.sleep(20);
                 robot.driveTrain.lineDrive(24, power, kP, kI, kD, kA, kV);
             } else if (gamepad1.right_trigger < 0.5 && trigger) {

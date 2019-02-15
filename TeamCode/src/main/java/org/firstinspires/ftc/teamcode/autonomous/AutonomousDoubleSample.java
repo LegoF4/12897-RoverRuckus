@@ -416,10 +416,12 @@ public class AutonomousDoubleSample extends LinearOpMode {
             isActive = true;
             while(isActive)    {
                 synchronized (this) {
-                    Position pos =  robot.driveTrain.getPosition();
-                    telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
-                    telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
-                    telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
+                    if(robot != null) {
+                        Position pos =  robot.driveTrain.getPosition();
+                        telemetry.addData("X-Coord: ", String.format("%.3f", pos.x));
+                        telemetry.addData("Y-Coord: ", String.format("%.3f", pos.y));
+                        telemetry.addData("φ-Coord: ", String.format("%.3f", pos.phi));
+                    }
                     if(mineralPosition != null) telemetry.addLine("Mineral Position: " + mineralPosition.name());
                     telemetry.update();
                 }

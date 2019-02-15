@@ -21,7 +21,7 @@ public abstract class ControllerMotionPlanning extends Controller {
     }
 
     @Override
-    protected void run() {
+    protected void loop() {
         long timeLast = System.currentTimeMillis();
         double power; /**
         while(isActive) {
