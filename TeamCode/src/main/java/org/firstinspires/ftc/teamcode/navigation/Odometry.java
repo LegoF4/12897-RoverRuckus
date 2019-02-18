@@ -64,6 +64,11 @@ public class Odometry {
 
     private class OdometryThread extends Thread {
 
+        public OdometryThread() {
+            this.setName("Odometry");
+            this.setPriority(MIN_PRIORITY);
+        }
+
         @Override
         public void run() {
             left.setZeroPosition();

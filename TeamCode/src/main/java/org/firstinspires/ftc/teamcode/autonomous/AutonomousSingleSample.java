@@ -4,6 +4,7 @@ import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.constructs.Robot;
 import org.firstinspires.ftc.teamcode.constructs.Slides;
@@ -18,6 +19,7 @@ import org.opencv.core.Size;
  * Created by LeviG on 12/16/2018.
  */
 @Autonomous(name = "Autonomous Single Sample")
+@Disabled
 public class AutonomousSingleSample extends LinearOpMode {
 
     MineralPosition mineralPosition = null;

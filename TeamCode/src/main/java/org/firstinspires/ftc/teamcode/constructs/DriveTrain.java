@@ -27,7 +27,7 @@ public class DriveTrain {
     public static final double alpha = 6; // Measured in degrees per second per second
     public static final double omega = 60; // Measured in degrees per second
 
-    public static final double linearKP =  0.032500; //P term for linear driving PID controller
+    public static final double linearKP =  0.037500; //P term for linear driving PID controller
     public static final double linearKI =  0.000001; //I term for linear driving PID controller
     public static final double linearKD =  0.000200; //D term for linear driving PID controller
     public static final double linearKA =  0; //A term for linear driving FF controller
@@ -79,14 +79,11 @@ public class DriveTrain {
      * @param power Relative power to travel at
      */
     public void lineDrive(final double distance, double power) throws InterruptedException {
-        lineDrive(distance, power, linearKP, linearKI, linearKD, linearKA, linearKV);
-        while(isDriving()) {
-            Thread.sleep(20);
-        }
+        lineDrive(distance, power, linearKP, linearKI, linearKD, linearKA, linearKV, true);
         setPower(0);
     }
 
-    public void lineDrive(final double distance, double power, double kP, double kI, double kD, double kA, double kV) throws InterruptedException {
+    public void lineDrive(final double distance, double power, double kP, double kI, double kD, double kA, double kV, boolean termOnStop) throws InterruptedException {
         final double powerUsed = power;
         FeedForward feedForward = new LinearMotionProfiler(distance, acceleration, maxVelocity, kA, kV);
         final Position startPos = odometricTracker.getPosition();
@@ -95,29 +92,38 @@ public class DriveTrain {
         final double xF = startPos.x + distance*cos;
         final double yF = startPos.y + distance*sin;
 
-        controller = new ControllerPID(kP, kD, kI, 100, 0.02, 0.25, feedForward, true) {
+        controller = new ControllerPID(kP, kD, kI, 100, 0.1, 0.25, feedForward, termOnStop, 1) {
             @Override
             public double getCurrentPosition() {
-                Position pos = odometricTracker.getPosition();
-                return -MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin);
+                //StaticLog.addLine("linearDrive.getCurrentPosition()");
+                synchronized (this) {
+                    if(DriveTrain.this != null) {
+                        Position pos = odometricTracker.getPosition();
+                        return -MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin);
+                    }
+                    else return 0;
+                }
             }
 
             @Override
             public void setOutput(double u) {
-                u = powerUsed*u;
-                setPower(u);
+                //StaticLog.addLine("linearDrive.setOutput()");
+                synchronized (this) {
+                    if(DriveTrain.this != null) {
+                        u = powerUsed*u;
+                        setPower(u);
+                    }
+                }
             }
         };
         ((ControllerPID) controller).setDesiredPosition(0);
-        controller.startControl();
+        controller.isActive = true;
+        ((ControllerPID) controller).loop();
+        //controller.startControl();
     }
 
     public void degreeTurn(double degree, double power) throws InterruptedException{
-        degreeTurn(degree, power, angularKP, angularKI, angularKD, angularKA, angularKV);
-        while(isDriving()) {
-            Thread.sleep(20);
-        }
-        setPower(0);
+        degreeTurn(degree, power, angularKP, angularKI, angularKD, angularKA, angularKV, true);
     }
 
     /**
@@ -125,28 +131,36 @@ public class DriveTrain {
      * @param degrees Degrees to be turned, positive is CCW
      * @param power Relative power to turn at
      */
-    public void degreeTurn(double degrees, double power, double kP, double kI, double kD, double kA, double kV) throws InterruptedException  {
+    public void degreeTurn(double degrees, double power, double kP, double kI, double kD, double kA, double kV, boolean termOnStop) throws InterruptedException  {
         this.stopController();
         final double powerUsed = power;
         FeedForward feedForward = new LinearMotionProfiler(degrees, alpha, omega, kA, kV);
         StaticLog.addLine("Feed Forward initiated");
         final Position startPos = odometricTracker.getPosition();
         StaticLog.addLine("Initial position retrieved");
-        controller = new ControllerPID(kP, kD, kI, 50, 0.02, 0.5, feedForward, true) {
+        controller = new ControllerPID(kP, kD, kI, 50, 0.1, 1.5, feedForward, termOnStop, 3) {
             @Override
             public double getCurrentPosition() {
-                return getPosition().phi;
+                //StaticLog.addLine("degreeTurn.getCurrentPosition()");
+                synchronized (this) {
+                    return odometricTracker.getPosition().phi;
+                }
             }
 
             @Override
             public void setOutput(double u) {
-                u = powerUsed*u;
-                setPower(u,u,-u,-u);
+                //StaticLog.addLine("degreeTurn.setOutput()");
+                synchronized (this) {
+                    u = powerUsed*u;
+                    setPower(u,u,-u,-u);
+                }
             }
         };
         StaticLog.addLine("Controller initiated");
         ((ControllerPID) controller).setDesiredPosition(startPos.phi+degrees);
-        controller.startControl();
+        controller.isActive = true;
+        ((ControllerPID) controller).loop();
+        //controller.startControl();
     }
 
     public synchronized void init() {
@@ -158,8 +172,12 @@ public class DriveTrain {
         else return false;
     }
 
-    public synchronized void stop() {
-        stopController();
+    public void stop() {
+        synchronized (this) {
+            if(controller != null) controller.isActive = false;
+        }
+        //StaticLog.addLine("DriveTrain.stop()");
+        //stopController();
         stopOdometry();
         setPower(0);
         bl.close();
@@ -177,14 +195,17 @@ public class DriveTrain {
     }
 
     public synchronized void stopOdometry() {
+        //StaticLog.addLine("DriveTrain.stopOdometry()");
         if(odometricTracker != null) odometricTracker.stopTracking();
     }
 
     public synchronized void stopController() {
+        //StaticLog.addLine("DriveTrain.stopController(). Controller is null: " + Boolean.toString(controller == null));
         if(controller != null) controller.stopControl();
     }
 
     public synchronized Position getPosition() {
+        //StaticLog.addLine("DriveTrain.getPosition()");
         return odometricTracker.getPosition();
     }
 
@@ -193,6 +214,7 @@ public class DriveTrain {
     }
 
     public synchronized void setPower(double flP, double blP, double frP, double brP) {
+        //StaticLog.addLine("DriveTrain.setPower()");
         flP = MathFTC.clamp(flP, -1, 1);
         frP = MathFTC.clamp(frP, -1, 1);
         blP = MathFTC.clamp(blP, -1, 1);

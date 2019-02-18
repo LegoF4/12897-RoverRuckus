@@ -100,7 +100,7 @@ public class TeleOpPIDDriving extends LinearOpMode {
                 trigger = true;
                 robot.driveTrain.stopController();
                 Thread.sleep(20);
-                robot.driveTrain.lineDrive(24, power, kP, kI, kD, kA, kV);
+                robot.driveTrain.lineDrive(24, power, kP, kI, kD, kA, kV, false);
             } else if (gamepad1.right_trigger < 0.5 && trigger) {
                 trigger = false;
             }

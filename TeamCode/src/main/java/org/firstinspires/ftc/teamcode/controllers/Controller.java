@@ -11,7 +11,7 @@ public abstract class Controller {
 
     //Thread Management
     protected volatile Thread controlLoop;
-    protected volatile boolean isActive;
+    public volatile boolean isActive;
 
     public Controller() {
         //Instantiates control thread
@@ -25,6 +25,12 @@ public abstract class Controller {
      * Actual looped thread, this is what runs constantly.
      */
     protected class ControlThread extends Thread {
+
+        public ControlThread() {
+            this.setName("Controller");
+            this.setPriority(MIN_PRIORITY);
+        }
+
         @Override
         public void run() {
             Controller.this.loop();
@@ -56,6 +62,7 @@ public abstract class Controller {
      * Terminates the control loop
      */
     synchronized public void stopControl() {
+        StaticLog.addLine("Controller.stopControl()");
         controlLoop.interrupt();
     }
 

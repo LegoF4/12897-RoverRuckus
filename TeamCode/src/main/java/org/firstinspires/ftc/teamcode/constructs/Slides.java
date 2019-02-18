@@ -13,6 +13,9 @@ import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 
 public class Slides {
 
+    public static final double TICKS_PER_ROT = 288;
+    public static final double INCHES_PER_ROT = 1.5;
+
     private volatile HardwareMap map;
 
     private volatile DcMotor hl;
@@ -46,13 +49,21 @@ public class Slides {
         hl.setPower(power);
     }
 
+    public synchronized int getPosition() {
+        return hl.getCurrentPosition();
+    }
+
+    public synchronized void setTargetPosition(int position) {
+        hl.setTargetPosition(position);
+    }
+
     public synchronized void setIntakeDirection(Intake direction) {
         switch (direction) {
             case OUTPUT:
-                setIntakePower(-1);
+                setIntakePower(1);
                 break;
             case INTAKE:
-                setIntakePower(1);
+                setIntakePower(-1);
                 break;
             case STOPPED:
                 setIntakePower(0);
@@ -70,14 +81,23 @@ public class Slides {
     public synchronized void setArmPosition(Arm pos) {
         switch (pos) {
             case IN:
-                ar.setPosition(1);
-                break;
-            case OUT:
                 ar.setPosition(0);
                 break;
-            case REST:
-                ar.setPosition(0.5);
+            case OUT:
+                ar.setPosition(1);
                 break;
+            case REST:
+                ar.setPosition(0.25);
+                break;
+        }
+    }
+
+    public void prepForEncoders() throws InterruptedException {
+        setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Thread.sleep(50);
+        synchronized (this) {
+            hl.setTargetPosition(hl.getCurrentPosition());
+            hl.setPower(0.85);
         }
     }
 
@@ -86,6 +106,7 @@ public class Slides {
     }
 
     public synchronized void init() {
+        hl.resetDeviceConfigurationForOpMode();
         hl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
@@ -95,5 +116,9 @@ public class Slides {
         ar.close();
         hl.close();
         ir.close();
+    }
+
+    public synchronized void setMotorMode(DcMotor.RunMode runMode) {
+        hl.setMode(runMode);
     }
 }

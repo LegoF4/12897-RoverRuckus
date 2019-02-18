@@ -76,26 +76,24 @@ public class TeleOpMain extends TeleOpMode {
          * INTAKE CONTROLS
          */
         //Toggles arm for collection
-        addButton(new Button(new Key[]{Key.RIGHT_BUMPER, Key.LEFT_BUMPER}) {
+        addButton(new ToggleButton(Key.B, 3) {
             @Override
-            public void update() {
+            public void setOutput(int currentState, double value) {
                 if(!isHangMode) {
-                    if (this.keyValues.get(0) > 0.5 && this.keyValues.get(1) < 0.5) {
-                        getRobot().slides.setArmPosition(Slides.Arm.OUT);
-                        getRobot().slides.setIntakeDirection(Slides.Intake.INTAKE);
-                    } else if (this.keyValues.get(0) < 0.5 && this.keyValues.get(1) < 0.5 && System.currentTimeMillis() > startTime + wait) {
-                        getRobot().slides.setArmPosition(Slides.Arm.REST);
-                        getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                    switch (currentState) {
+                        case 0:
+                            getRobot().slides.setIntakeDirection(Slides.Intake.INTAKE);
+                            getRobot().slides.setArmPosition(Slides.Arm.OUT);
+                            break;
+                        case 1:
+                            getRobot().slides.setIntakeDirection(Slides.Intake.STOPPED);
+                            getRobot().slides.setArmPosition(Slides.Arm.REST);
+                            break;
+                        case 2:
+                            getRobot().slides.setIntakeDirection(Slides.Intake.OUTPUT);
+                            getRobot().slides.setArmPosition(Slides.Arm.IN);
+                            break;
                     }
-                }
-            }
-        });
-        addButton(new DigitalButton(new Key[]{Key.LEFT_BUMPER}) {
-            @Override
-            public void setOutput() {
-                if(!isHangMode) {
-                    getRobot().slides.setArmPosition(Slides.Arm.IN);
-                    getRobot().slides.setIntakeDirection(Slides.Intake.OUTPUT);
                 }
             }
         });
@@ -197,6 +195,7 @@ public class TeleOpMain extends TeleOpMode {
             updateButtons();
             telemetry.addLine("Speed: " + (powerScalar > 0.4 ? "FAST" : "SLOW"));
             telemetry.addLine("Hang Mode: " + Boolean.toString(isHangMode));
+            telemetry.addLine("Lift Up: " + Boolean.toString(robot.lift.isUp()));
             telemetry.update();
             Thread.sleep(50);
         }

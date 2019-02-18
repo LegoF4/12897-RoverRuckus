@@ -32,6 +32,7 @@ public class EncoderMA3 extends Encoder {
         this.currentPosition = this.zeroPosition;
         this.priorPosition = this.currentPosition;
         this.firstDerivative = 0;
+
     }
 
     /**

@@ -25,10 +25,11 @@ public abstract class ControllerPID extends Controller {
     public long T;
     public double powerThreshold;
     public double errorThreshold;
+    public double termThreshold;
     public boolean terminateOnStop;
     public volatile boolean isDone = false;
 
-    public static final long TIMEOUT = 5000;
+    public static final long TIMEOUT = 1500;
 
     public static final boolean verbose = false;
     //Desired Position
@@ -64,7 +65,7 @@ public abstract class ControllerPID extends Controller {
     public volatile double desiredPosition = 0;
 
     //Constructor
-    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, boolean termOnStop) {
+    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, boolean termOnStop, double termThreshold) {
         super();
         //Sets parameters
         this.kP = kP;
@@ -76,22 +77,23 @@ public abstract class ControllerPID extends Controller {
         this.desiredPosition = 0;
         this.fF = new FeedNull();
         this.terminateOnStop = termOnStop;
+        this.termThreshold = termThreshold;
     }
 
     /**
      * Feed forward constructor
      */
-    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, FeedForward fF, boolean termOnStop) {
-        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, termOnStop);
+    public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold, FeedForward fF, boolean termOnStop, double termThreshold) {
+        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, termOnStop, termThreshold);
         this.fF = fF;
     }
 
     public ControllerPID(double kP, double kD, double kI, double frequency, double powerThreshold, double errorThreshold) {
-        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, false);
+        this(kP, kD, kI, frequency, powerThreshold, errorThreshold, false, errorThreshold);
     }
 
     @Override
-    protected void loop() {
+    public void loop() {
         double errorCurrent = getError();
         double errorPrevious = errorCurrent;
         double errorTotal = 0;
@@ -104,6 +106,7 @@ public abstract class ControllerPID extends Controller {
             errorPrevious = errorCurrent;
             synchronized (this) {
                 if(isActive) {
+                    //StaticLog.addLine("controllerPID getting error");
                     errorCurrent = getError();
                 } else {
                     break;
@@ -122,13 +125,12 @@ public abstract class ControllerPID extends Controller {
             if(Math.abs(u) < powerThreshold) u = 0; //Prevents very low amplitude adjustments
             synchronized (this) {
                 if(isActive) {
-                    errorCurrent = getError();
-                } else {
+                    //StaticLog.addLine("controllerPID settingOutput");
                     setOutput(u);
                 }
             }
             if(terminateOnStop) {
-                if((Math.abs(u) < powerThreshold && Math.abs(errorCurrent) < errorThreshold) || (System.currentTimeMillis() > (startTime + TIMEOUT))) {
+                if((Math.abs(u) < powerThreshold && Math.abs(errorCurrent) < termThreshold) || (System.currentTimeMillis() > (startTime + TIMEOUT))) {
                     synchronized (this) {
                         isDone = true;
                         isActive = false;
@@ -140,6 +142,7 @@ public abstract class ControllerPID extends Controller {
                 try {
                     sleepTime = (long) (T-(System.currentTimeMillis()-timeLast));
                     if(sleepTime > 0) {
+                        //StaticLog.addLine("Controller PID sleeping");
                         Thread.sleep(sleepTime);
                     }
                     //Terminate on exception
