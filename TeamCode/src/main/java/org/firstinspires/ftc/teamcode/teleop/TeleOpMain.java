@@ -45,15 +45,17 @@ public class TeleOpMain extends TeleOpMode {
         /*
          * DEPOSITION CONTROL
          */
-        //Deposit from middle
+        //Deposit control
         addButton(new AnalogButton(Key.LEFT_BUMPER_2) {
             @Override
             public void setOutput(double value) {
                 if(!isHangMode) {
                     if(this.keyValues.get(0) > 0.5) {
                         getRobot().setDeposit(Robot.Deposit.DEPOSIT);
+                        //isDriving = false; Disables driving when dumping.
                     } else if (this.keyValues.get(0) < 0.5) {
                         getRobot().setDeposit(Robot.Deposit.MIDDLE);
+                        //isDriving = true; Enables driving when not dunping
                     }
                 }
             }
@@ -160,7 +162,7 @@ public class TeleOpMain extends TeleOpMode {
         /**
         * HANG MODE BUTTON
          */
-        //The title above says it all
+        //The title above says it all - disables intake control, slows down driving, moves lift to correct height, disables deposition
         addButton(new ToggleButton(new Key[]{Key.X_2}) {
 
             private boolean isControlling = false;
@@ -241,6 +243,7 @@ public class TeleOpMain extends TeleOpMode {
         /**
          * LIFT CODE
          */
+        //Moves lift to silver/hang hiehgt
         addButton(new Button(new Key[]{Key.A_2}) {
 
             private boolean isControlling = false;
@@ -251,7 +254,7 @@ public class TeleOpMain extends TeleOpMode {
             public void update() {
                 if(!isHangMode) {
                     if(this.keyValues.get(0) > 0.5 && !isPressed) {
-                        if(!autoLiftControl) {
+                        if(!autoLiftControl) { //Ensures another auto sequence isn't already in affect
                             isPressed = true;
                             isControlling = true;
                             liftIsMoving = true;
@@ -262,7 +265,7 @@ public class TeleOpMain extends TeleOpMode {
                     }
                 }
                 if(this.isControlling) { //Code to stop moving the lift after it is at the hang position
-                    if((getRobot().lift.isUp() && hasBeenDown) || !autoLiftControl) {
+                    if((getRobot().lift.isUp() && hasBeenDown) || !autoLiftControl) { //If autoLiftControl terminated due to user input, stops
                         liftIsMoving = false;
                         autoLiftControl = false;
                         getRobot().lift.setPower(0);
@@ -314,6 +317,7 @@ public class TeleOpMain extends TeleOpMode {
                 }
             }
         });
+
         //Maximum lift force down
         addButton(new DigitalButton(new Key[]{Key.DPAD_DOWN_2, Key.LEFT_BUMPER_2}) {
             @Override
@@ -333,7 +337,7 @@ public class TeleOpMain extends TeleOpMode {
                 if(!isHangMode && this.keyValues.get(1) < 0.5) getRobot().setDeposit(Robot.Deposit.MIDDLE);
                 getRobot().lift.setPower(-1); }
         });
-        //Slow lift control
+        // Analog lift control
         addButton(new Button(new Key[]{Key.DPAD_DOWN_2, Key.LEFT_TRIGGER_2, Key.RIGHT_TRIGGER_2, Key.DPAD_UP_2, Key.LEFT_BUMPER_2}) {
             @Override
             public void update() {
@@ -372,6 +376,7 @@ public class TeleOpMain extends TeleOpMode {
         }
     }
 
+    //Purely to avoid excessive C/Ping of the following case of the true condition
     public synchronized void setIntakeInRestMode(boolean intakeInRestMode) {
         this.intakeInRestMode = intakeInRestMode; //This ensures the LEFT_BUMPER and RIGHT_BUMPER controls know whether to move "out" or to rest
         if(this.intakeInRestMode) { //Just methodizes setting the full rest pose parameters
@@ -382,6 +387,7 @@ public class TeleOpMain extends TeleOpMode {
         }
     }
 
+    //Only use for case of true....
     public synchronized void setLiftIsMoving(boolean liftIsMoving) {
         this.liftIsMoving = liftIsMoving;
         if(this.liftIsMoving && isIntakeIn) {
