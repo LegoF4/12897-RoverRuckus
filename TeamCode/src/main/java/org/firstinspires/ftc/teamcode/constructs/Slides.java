@@ -87,17 +87,15 @@ public class Slides {
                 ar.setPosition(1);
                 break;
             case REST:
-                ar.setPosition(0.25);
+                ar.setPosition(0.5);
                 break;
         }
     }
 
-    public void prepForEncoders() throws InterruptedException {
+    public void prepForEncoders() {
         setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Thread.sleep(50);
         synchronized (this) {
             hl.setTargetPosition(hl.getCurrentPosition());
-            hl.setPower(0.85);
         }
     }
 

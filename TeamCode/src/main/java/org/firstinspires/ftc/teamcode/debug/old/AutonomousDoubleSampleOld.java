@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.debug.old;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
@@ -19,9 +19,9 @@ import org.opencv.core.Size;
 /**
  * Created by LeviG on 12/16/2018.
  */
-@Autonomous(name = "Autonomous Double Sample")
+@Autonomous(name = "Autonomous Double Sample Old")
 @Disabled
-public class AutonomousDoubleSample extends LinearOpMode {
+public class AutonomousDoubleSampleOld extends LinearOpMode {
 
     MineralPosition mineralPosition = null;
     Robot robot;

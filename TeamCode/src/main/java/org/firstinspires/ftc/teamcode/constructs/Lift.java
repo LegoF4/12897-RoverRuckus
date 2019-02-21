@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.constructs;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
@@ -12,17 +13,24 @@ public class Lift {
 
     private DcMotor vl;
     private DcMotor vr;
-    private DigitalChannel liftLimit;
+    private DigitalChannel liftUp;
+    private DigitalChannel liftDown;
 
     public Lift(HardwareMap map) {
         vl = map.get(DcMotor.class,"vl");
         vr = map.get(DcMotor.class,"vr");
-        liftLimit = map.get(DigitalChannel.class, "limit1");
-        liftLimit.setMode(DigitalChannel.Mode.INPUT);
+        liftUp = map.get(DigitalChannel.class, "limit1");
+        liftDown = map.get(DigitalChannel.class, "liftLimit");
+        liftUp.setMode(DigitalChannel.Mode.INPUT);
+        liftDown.setMode(DigitalChannel.Mode.INPUT);
     }
 
     public synchronized Boolean isUp() {
-        return !liftLimit.getState();
+        return !liftUp.getState();
+    }
+
+    public synchronized Boolean isDown() {
+        return !liftDown.getState();
     }
 
     public synchronized void setPower(double power) {
@@ -31,7 +39,7 @@ public class Lift {
     }
 
     public synchronized void init() {
-        liftLimit.resetDeviceConfigurationForOpMode();
+        liftUp.resetDeviceConfigurationForOpMode();
         vl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         vr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         vl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

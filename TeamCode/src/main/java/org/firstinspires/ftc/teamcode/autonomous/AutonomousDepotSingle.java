@@ -11,14 +11,14 @@ import org.firstinspires.ftc.teamcode.navigation.Position;
 import org.firstinspires.ftc.teamcode.utilities.misc.LinearOpMode;
 import org.firstinspires.ftc.teamcode.utilities.misc.MathFTC;
 import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
-import org.opencv.core.Size;
 
 /**
  * Created by LeviG on 12/16/2018.
  */
-@Autonomous(name = "Autonomous New")
-public class AutonomousDoubleSampleNew extends LinearOpMode {
+@Autonomous(name = "Autonomous Crater - SINGLE")
+public class AutonomousDepotSingle extends LinearOpMode {
 
     MineralPosition mineralPosition = null;
     Robot robot;
@@ -39,9 +39,10 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
         //Clears log of previous contents
         StaticLog.clearLog();
         //Instantiates and initiates hardware
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, 0, 0, 0);
         robot.init();
         if(HANGS) robot.lift.setPower(0.38);
+        int startPos;
         //Waits for game start
         while (!isStarted()) {
             synchronized (this) {
@@ -57,9 +58,10 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
         }
         if(HANGS) {
             robot.slides.prepForEncoders(); // Locks slides in place
+            startPos = robot.slides.getPosition();
             robot.slides.setArmPosition(Slides.Arm.REST); //Rotates intake to REST position
             robot.setDeposit(Robot.Deposit.MIDDLE); //Sets deposition bucket to clear back cross-beam
-            initiDetector();
+            initDetector();
             boolean found = false;
             Thread.sleep(300);
             //Runs mineral detector algorithm
@@ -91,13 +93,22 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
                 Thread.sleep(10);
             }
             robot.lift.setPower(0);
-            //Boots odometry
+
+            //Boots temporary odometry for strafe
+            Thread.sleep(200);
             robot.driveTrain.startOdometry();
+
+            //Moves hook off anchor point
+            strafeInches(2, 0.35);
+            Thread.sleep(350);
+
+            //Strafes out from hook
+            robot.driveTrain.restartOdometry(0, 2.3, 0);
+
+            //Zeros and initiates odometry
             odTel = new OdometryTel();
             odTel.start();
             Thread.sleep(200);
-            //Moves hook off anchor point
-            strafeInches(2.5, 0.35);
         }
         //Starts position tracking
         if(!HANGS) {
@@ -106,7 +117,7 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
             odTel = new OdometryTel();
             odTel.start();
             //Detect mineral and confirms sufficient size
-            initiDetector();
+            initDetector();
             boolean found = false;
             Thread.sleep(300);
             detector.enable();
@@ -128,105 +139,150 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
             if(!found) mineralPosition = MineralPosition.RIGHT;
             telemetry.addLine("Mineral Position: " + mineralPosition.name());
             telemetry.update();
+            startPos = robot.slides.getPosition();
         }
-
-        Thread.sleep(300); //Pause after de-hang
 
         //Rotates slides out enough to drop intake
-        int startPos = robot.slides.getPosition();
-        int newPos = startPos - 750;
+        int newPos = startPos - 950;
         robot.slides.setTargetPosition(newPos);
-        while(robot.slides.getPosition() < newPos - 5 && opModeIsActive()) {
+        robot.slides.setPower(0.85);
+        long slideTime = System.currentTimeMillis();
+        while(robot.slides.getPosition() > newPos + 25 && opModeIsActive() && System.currentTimeMillis() < (slideTime + 2200) && opModeIsActive()) {
             Thread.sleep(20);
         }
+        robot.slides.setPower(0);
 
         //Drops intake arms and turns intake on
+        long extendTime = System.currentTimeMillis();
         robot.slides.setArmPosition(Slides.Arm.OUT);
         robot.slides.setIntakeDirection(Slides.Intake.INTAKE);
-        Thread.sleep(800);
-        //Drives 3 inches forward so as to clear hook from latch
+
+        //Lowers lift
+        robot.lift.setPower(0.8);
+        while(!robot.lift.isDown() && System.currentTimeMillis() < (extendTime + 900) && opModeIsActive()) {
+            Thread.sleep(10);
+        }
+        robot.lift.setPower(0);
+
+        //Drives forward so as to clear hook from latch
         robot.driveTrain.lineDrive(-5.5+robot.driveTrain.getPosition().x, 0.8);
+
         //Translates and orients robot for intake, then runs slides out appropriate amount
         switch (mineralPosition) {
             case CENTER:
                 strafeInches(2-robot.driveTrain.getPosition().y, 0.32); //Strafes robot to center it
+                //Run slides
                 robot.slides.setTargetPosition(startPos - 2420);
-                while(robot.slides.getPosition() > (startPos - 2415) && opModeIsActive()) {
+                robot.slides.setPower(0.85);
+                while(robot.slides.getPosition() > (startPos - 2405) && opModeIsActive()) {
                     Thread.sleep(20);
                 }
                 break;
             case RIGHT:
-                strafeInches(-1-robot.driveTrain.getPosition().y, 0.32); //Strafes robot to center it
-                robot.driveTrain.degreeTurn(-31-robot.driveTrain.getPosition().phi,0.7);
-                robot.slides.setTargetPosition(startPos - 2800);
-                while(robot.slides.getPosition() > (startPos - 2795) && opModeIsActive()) {
+                robot.driveTrain.degreeTurn(-37-robot.driveTrain.getPosition().phi,0.7);
+                //Run slides
+                slideTime = System.currentTimeMillis();
+                robot.slides.setTargetPosition(startPos - 2900);
+                robot.slides.setPower(0.85);
+                driveInches(-3, 0.2);
+                //Wait for slides
+                while(robot.slides.getPosition() > (startPos - 2885) && opModeIsActive() && System.currentTimeMillis() < (slideTime + 1200)) {
                     Thread.sleep(20);
                 }
+                driveInches(3, 0.2);
                 break;
             case LEFT:
                 robot.driveTrain.degreeTurn(26-robot.driveTrain.getPosition().phi,0.7);
+                //Run slides
                 robot.slides.setTargetPosition(startPos - 2800);
-                while(robot.slides.getPosition() > (startPos - 2795) && opModeIsActive()) {
+                robot.slides.setPower(0.85);
+                slideTime = System.currentTimeMillis();
+                while(robot.slides.getPosition() > (startPos - 2785) && opModeIsActive() && System.currentTimeMillis() < (slideTime + 1200)) {
                     Thread.sleep(20);
                 }
                 break;
         }
+        //Brings slides in
+        robot.slides.setIntakeDirection(Slides.Intake.INTAKE);
         robot.slides.setTargetPosition(startPos);
+
         //Brings intake to rest position, leaving intake on
         robot.slides.setArmPosition(Slides.Arm.REST);
-        Thread.sleep(800);
+        slideTime = System.currentTimeMillis();
+
+        //Wait for slides to finish
+        while(robot.slides.getPosition() < startPos - 20 && opModeIsActive() && System.currentTimeMillis() < (slideTime + 2200)) {
+            Thread.sleep(20);
+        }
+        robot.slides.setIntakeDirection(Slides.Intake.STOPPED);
+
+        //Re-zero, if necessary
         robot.driveTrain.degreeTurn(0-robot.driveTrain.getPosition().phi,0.7);
+        robot.slides.setPower(0);
+        //Drive to center between lander and samples
         robot.driveTrain.lineDrive(-17.5-robot.driveTrain.getPosition().x, 0.8);
-        strafeInches(21-robot.driveTrain.getPosition().y,0.7);
-        robot.driveTrain.degreeTurn(-45-robot.driveTrain.getPosition().phi, 0.7);
-        robot.driveTrain.setPower(0.6, -0.6, -0.6, 0.6);
+
+        //Strafe out
+        strafeInches(21-robot.driveTrain.getPosition().y,0.8);
+
+        //Turn to be parallel to field walls
+        robot.driveTrain.degreeTurn(135-robot.driveTrain.getPosition().phi, 0.7);
+
+        //Strafe into wall
+        robot.driveTrain.setPower(-0.6, 0.6, 0.6, -0.6);
         Thread.sleep(1000);
         robot.driveTrain.setPower(0);
         Thread.sleep(100);
-        strafeInches(-1, 0.28);
+
+        //Strafe 1 inch away from wall
+        strafeInches(1, 0.28);
+
+        //Move to depot
         pos = robot.driveTrain.getPosition();
-        robot.driveTrain.lineDrive(65-pos.x*MathFTC.cos45-pos.y*MathFTC.sin45, 0.8);
-        strafeInches(-6,0.32);
-        /**
-        switch (mineralPosition) {
-            case RIGHT:
-                robot.driveTrain.degreeTurn(-83-robot.driveTrain.getPosition().phi, 0.6);
-                break;
-            case CENTER:
-                robot.driveTrain.degreeTurn(-90-robot.driveTrain.getPosition().phi, 0.6);
-                robot.slides.setTargetPosition(startPos - 2420);
-                while(robot.slides.getPosition() > (startPos - 2415) && opModeIsActive()) {
-                    Thread.sleep(20);
-                }
-                break;
-            case LEFT:
-                robot.driveTrain.degreeTurn(-125-robot.driveTrain.getPosition().phi, 0.6);
-                break;
+        driveInches(-(75-pos.x*MathFTC.cos45-pos.y*MathFTC.sin45), 0.4);
+
+        //Marginally extends slides
+        robot.slides.setTargetPosition(startPos - 1000);
+        robot.slides.setPower(0.82);
+        slideTime = System.currentTimeMillis();
+        while(robot.slides.getPosition() > startPos - 975 && opModeIsActive() && System.currentTimeMillis() < (slideTime + 2200)) {
+            Thread.sleep(20);
         }
-        //robot.driveTrain.degreeTurn(-90-robot.driveTrain.getPosition().phi, 0.7);
-        /**
-        robot.setDeposit(Robot.Deposit.DEPOSIT);
-        robot.driveTrain.setPower(0);
-        Thread.sleep(1600);
+        robot.slides.setIntakeDirection(Slides.Intake.STOPPED);
+
+        //Dumps marker
+        robot.setDeposit(Robot.Deposit.HIGH);
+        Thread.sleep(1800);
         robot.setDeposit(Robot.Deposit.MIDDLE);
-        //Drives to crater
-        switch (mineralPosition) {
-            case RIGHT:
-                driveInches(35, 0.7);
-                break;
-            case CENTER:
-                driveInches(51, 0.7);
-                break;
-            case LEFT:
-                driveInches(62, 0.7);
-                break;
+        Thread.sleep(900);
+
+        //Retracts slides
+        robot.slides.setTargetPosition(startPos);
+        slideTime = System.currentTimeMillis();
+        while(robot.slides.getPosition() < startPos - 20 && opModeIsActive() && System.currentTimeMillis() < (slideTime + 2200)) {
+            Thread.sleep(20);
         }
-        robot.driveTrain.setPower(-0.7);
-        Thread.sleep(600);
-        robot.driveTrain.setPower(-0.3);
-        while(opModeIsActive()) {
-            Thread.sleep(10);
-        }
+        robot.slides.setIntakeDirection(Slides.Intake.STOPPED);
+
+        //Strafe into wall
+        robot.driveTrain.setPower(-0.6, 0.6, 0.6, -0.6);
+        Thread.sleep(800);
+        robot.driveTrain.setPower(0);
+
+        //Strafe out of wall
+        strafeInches(1, 0.28);
+        robot.slides.setIntakeDirection(Slides.Intake.STOPPED);
+
+        //Drive forward, halfway to crater
+        driveInches(-30, 0.65);
+
+        //Begin running the slides out
+        robot.slides.setTargetPosition(startPos - 2800);
+        robot.slides.setPower(0.9);
+
+        //Move the rest of the way to the crater
+        driveInches(-23, 0.65);
+        //robot.driveTrain.setPower(0.3); //Run this if you need to stay parked in the crater
         robot.driveTrain.setPower(0);
          //**/
         Thread.sleep(200000);
@@ -255,7 +311,6 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
             }
         }
         robot.driveTrain.setPower(0);
-        Thread.sleep(150);
     }
 
     public void driveInches(double distance, double p1) throws InterruptedException {
@@ -267,7 +322,7 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
         if(Math.abs(MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin)) < 0.5) return;
         double driveDirection = MathFTC.distance(startPos.x, startPos.y, xF, yF, cos, sin) > 0 ? 1 : -1;
         p1 *= driveDirection;
-        robot.driveTrain.setPower(-p1);
+        robot.driveTrain.setPower(p1);
         if(driveDirection > 0) {
             Position pos = robot.driveTrain.getPosition();
             while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
@@ -282,7 +337,6 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
             }
         }
         robot.driveTrain.setPower(0);
-        Thread.sleep(150);
     }
 
     public void strafeInches(double distance, double p1) throws InterruptedException {
@@ -309,12 +363,10 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
             }
         }
         robot.driveTrain.setPower(0);
-        Thread.sleep(150);
     }
 
-    public void initiDetector() {
+    public void initDetector() {
         detector = new GoldDetector();
-        detector.setAdjustedSize(new Size(480, 270));
         detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         detector.useDefaults();// Optional Tuning
 
@@ -323,6 +375,9 @@ public class AutonomousDoubleSampleNew extends LinearOpMode {
         detector.areaScoringMethod = DogeCV.AreaScoringMethod.PERFECT_AREA; // Can also be PERFECT_AREA
         detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
         detector.perfectAreaScorer.weight = 0.05;
+        detector.cropTLCorner = new Point(200, 15); //Sets the top left corner of the new image, in pixel (x,y) coordinates
+        detector.cropBRCorner = new Point(500, 450); //Sets the bottom right corner of the new image, in pixel (x,y) coordinates
+
     }
 
     public class OdometryTel extends Thread {

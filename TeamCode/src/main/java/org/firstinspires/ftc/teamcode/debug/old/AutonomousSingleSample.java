@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.debug.old;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
@@ -18,7 +18,7 @@ import org.opencv.core.Size;
 /**
  * Created by LeviG on 12/16/2018.
  */
-@Autonomous(name = "Autonomous Single Sample")
+@Autonomous(name = "Autonomous Single Sample Old")
 @Disabled
 public class AutonomousSingleSample extends LinearOpMode {
 

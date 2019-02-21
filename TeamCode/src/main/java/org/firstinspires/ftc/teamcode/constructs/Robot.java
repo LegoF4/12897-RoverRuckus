@@ -62,16 +62,16 @@ public class Robot {
                             dr.setPosition(0);
                             break;
                         case MIDDLE:
-                            dl.setPosition(0.2);
-                            dr.setPosition(0.81);
+                            dl.setPosition(0.25);
+                            dr.setPosition(0.92);
                             break;
                         case DOWN:
                             dl.setPosition(0);
                             dr.setPosition(1);
                             break;
                         case HIGH:
-                            dl.setPosition(0.2);
-                            dr.setPosition(0.81);
+                            dl.setPosition(0.75);
+                            dr.setPosition(0.42);
                             break;
                     }
                 }

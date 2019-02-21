@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.constructs;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.controllers.Controller;
@@ -40,7 +39,7 @@ public class DriveTrain {
     public static final double angularKV = 0; //V term for angular driving FF controller
 
     public volatile HardwareMap map;
-    private volatile Odometry odometricTracker;
+    public volatile Odometry odometricTracker;
     public volatile Controller controller;
 
     private volatile DcMotor fr;
@@ -65,12 +64,18 @@ public class DriveTrain {
         centerPod = new EncoderMA3(map.get(AnalogInput.class,"center"));
         rightPod = new EncoderMA3(map.get(AnalogInput.class,"right"));
 
-        odometricTracker = new Odometry(leftPod,centerPod,rightPod, 100, x, y, phi);
+        odometricTracker = new Odometry(leftPod, centerPod, rightPod, 100, x, y, phi);
         this.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public DriveTrain(HardwareMap map) {
         this(map, 0, 0, 0);
+    }
+
+    public synchronized void restartOdometry(double x, double y, double phi) throws InterruptedException {
+        stopOdometry();
+        odometricTracker = new Odometry(leftPod, centerPod, rightPod, 100, x, y, phi);
+        startOdometry();
     }
 
     /**

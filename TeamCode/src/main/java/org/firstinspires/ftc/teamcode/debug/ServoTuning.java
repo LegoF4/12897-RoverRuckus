@@ -71,17 +71,12 @@ public class ServoTuning extends TeleOpMode {
         waitForStart();
         while(opModeIsActive()) {
             updateButtons();
-            if(System.currentTimeMillis() > (startTime + 2000)) {
-                s1.close();
-                s2.close();
-            } else {
-                telemetry.addLine("S1: " + String.format("%.5f", s1pos));
-                telemetry.addLine("S2: " + String.format("%.5f", s2pos));
-                telemetry.addLine("Increment: " + String.format("%.5f", increment));
-                telemetry.update();
-                s1.setPosition(s1pos);
-                s2.setPosition(s2pos);
-            }
+            telemetry.addLine("S1: " + String.format("%.5f", s1pos));
+            telemetry.addLine("S2: " + String.format("%.5f", s2pos));
+            telemetry.addLine("Increment: " + String.format("%.5f", increment));
+            telemetry.update();
+            s1.setPosition(s1pos);
+            s2.setPosition(s2pos);
             Thread.sleep(10);
         }
     }

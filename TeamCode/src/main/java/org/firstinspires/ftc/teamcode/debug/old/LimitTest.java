@@ -17,7 +17,7 @@ public class LimitTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        digitalChannel = hardwareMap.get(DigitalChannel.class, "limit1");
+        digitalChannel = hardwareMap.get(DigitalChannel.class, "liftLimit");
         digitalChannel.setMode(DigitalChannel.Mode.INPUT);
         waitForStart();
         while(opModeIsActive()) {
