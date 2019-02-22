@@ -18,16 +18,8 @@ public class SlideEncoderTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot = new Robot(hardwareMap);
         robot.init();
-        robot.setDeposit(Robot.Deposit.HIGH);
         waitForStart();
         robot.slides.prepForEncoders();
-        int startPos = robot.slides.getPosition();
-        robot.slides.setTargetPosition(robot.slides.getPosition() - 850);
-        robot.slides.setPower(0.85);
-        long slideTime = System.currentTimeMillis();
-        while(robot.slides.getPosition() > (startPos - 850) && opModeIsActive() && System.currentTimeMillis() < (slideTime + 2200)) {
-            Thread.sleep(20);
-        }
         while(opModeIsActive()) {
             telemetry.addLine("Ticks: " + Integer.toString(robot.slides.getPosition()));
             telemetry.update();

@@ -58,20 +58,20 @@ public class Robot {
                 synchronized (this) {
                     switch (deposit) {
                         case DEPOSIT:
-                            dl.setPosition(1);
+                            dl.setPosition(0.75);
                             dr.setPosition(0);
                             break;
                         case MIDDLE:
-                            dl.setPosition(0.25);
-                            dr.setPosition(0.92);
+                            dl.setPosition(0.14);
+                            dr.setPosition(0.91);
                             break;
                         case DOWN:
                             dl.setPosition(0);
                             dr.setPosition(1);
                             break;
                         case HIGH:
-                            dl.setPosition(0.75);
-                            dr.setPosition(0.42);
+                            dl.setPosition(0.64);
+                            dr.setPosition(0.40);
                             break;
                     }
                 }

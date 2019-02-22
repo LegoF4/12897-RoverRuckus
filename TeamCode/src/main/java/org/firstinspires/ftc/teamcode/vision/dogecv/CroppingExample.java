@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.vision.dogecv;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
+import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.OpenCVPipeline;
 import com.disnodeteam.dogecv.detectors.DogeCVDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
+import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -20,22 +23,24 @@ import org.opencv.core.Size;
 public class CroppingExample extends OpMode {
 
     //This is an example of an anonymous implementation of the DogeCV Detector
-    private DogeCVDetector detector = new DogeCVDetector() {
-        @Override
-        public Mat process(Mat rgba) {
-            return rgba;
-        }
-        @Override
-        public void useDefaults() {}
-    };
+    private GoldDetector detector;
 
     @Override
     public void init() {
+        detector = new GoldDetector();
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        detector.useDefaults();// Optional Tuning
+
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.PERFECT_AREA; // Can also be PERFECT_AREA
+        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.perfectAreaScorer.weight = 0.05;
+        detector.cropTLCorner = new Point(200, 15); //Sets the top left corner of the new image, in pixel (x,y) coordinates
+        detector.cropBRCorner = new Point(500, 450); //Sets the bottom right corner of the new image, in pixel (x,y) coordinates
+
+
         telemetry.addData("Status", "DogeCV 2019.1 - Cropping Example");
-
-        detector.cropTLCorner = new Point(300, 15); //Sets the top left corner of the new image, in pixel (x,y) coordinates
-        detector.cropBRCorner = new Point(600, 450); //Sets the bottom right corner of the new image, in pixel (x,y) coordinates
-
 
         // Set up detector
         detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
@@ -63,7 +68,6 @@ public class CroppingExample extends OpMode {
     @Override
     public void loop() {
         telemetry.addLine("DogeCV 2019.1 - Cropping Example");
-        telemetry.addLine("Size: " + detector.getAdjustedSize().toString());
         telemetry.update();
     }
 

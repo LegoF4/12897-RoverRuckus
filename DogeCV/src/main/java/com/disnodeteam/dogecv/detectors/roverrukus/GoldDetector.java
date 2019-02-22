@@ -60,11 +60,16 @@ public class GoldDetector extends DogeCVDetector {
     @Override
     public Mat process(Mat input) {
 
+        //Imgproc.rectangle(input, new Point(0,480), new Point(200, 280), new Scalar(0, 0, 0), -1);
+        //Imgproc.rectangle(input, new Point(0,0), new Point(640, 100), new Scalar(0,0,0), -1);
+
+        //Imgproc.rectangle(input, new Point(0,0), new Point(200, 480), new Scalar(0, 0, 0), -1);
+        //Imgproc.rectangle(input, new Point(615,0), new Point(640, 480), new Scalar(0, 0, 0), -1);
+
         // Copy the input mat to our working mats, then release it for memory
         input.copyTo(displayMat);
         input.copyTo(workingMat);
         input.release();
-
 
         //Preprocess the working Mat (blur it then apply a yellow filter)
         Imgproc.GaussianBlur(workingMat,workingMat,new Size(5,5),0);

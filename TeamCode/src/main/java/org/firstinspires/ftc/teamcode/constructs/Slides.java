@@ -87,7 +87,7 @@ public class Slides {
                 ar.setPosition(1);
                 break;
             case REST:
-                ar.setPosition(0.5);
+                ar.setPosition(0.28);
                 break;
         }
     }

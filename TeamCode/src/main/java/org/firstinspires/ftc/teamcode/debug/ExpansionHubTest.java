@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.debug;
 
 import com.disnodeteam.dogecv.math.Line;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -25,6 +26,7 @@ import java.util.Map;
  * Created by LeviG on 2/17/2019.
  */
 @TeleOp(name = "Expansion Hub Test")
+@Disabled
 public class ExpansionHubTest extends LinearOpMode {
 
     AnalogInput input;

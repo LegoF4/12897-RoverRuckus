@@ -15,9 +15,9 @@ public class ServoTuning extends TeleOpMode {
 
     Servo s1;
     Servo s2;
-    double s1pos = 0.5;
-    double s2pos = 0.5;
-    double increment = 0.01;
+    double s1pos = 1;
+    double s2pos = 0;
+    double increment = 0.1;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -71,8 +71,8 @@ public class ServoTuning extends TeleOpMode {
         waitForStart();
         while(opModeIsActive()) {
             updateButtons();
-            telemetry.addLine("S1: " + String.format("%.5f", s1pos));
-            telemetry.addLine("S2: " + String.format("%.5f", s2pos));
+            telemetry.addLine("DL: " + String.format("%.5f", s1pos));
+            telemetry.addLine("DR: " + String.format("%.5f", s2pos));
             telemetry.addLine("Increment: " + String.format("%.5f", increment));
             telemetry.update();
             s1.setPosition(s1pos);

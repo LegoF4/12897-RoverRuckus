@@ -166,7 +166,7 @@ public class AutonomousCraterDouble extends LinearOpMode {
         //Translates and orients robot for intake, then runs slides out appropriate amount
         switch (mineralPosition) {
             case CENTER:
-                strafeInches(2-robot.driveTrain.getPosition().y, 0.32); //Strafes robot to center it
+                strafeInches(0-robot.driveTrain.getPosition().y, 0.32); //Strafes robot to center it
                 //Run slides
                 robot.slides.setTargetPosition(startPos - 2420);
                 robot.slides.setPower(0.85);
@@ -216,10 +216,10 @@ public class AutonomousCraterDouble extends LinearOpMode {
         robot.driveTrain.degreeTurn(0-robot.driveTrain.getPosition().phi,0.7);
         robot.slides.setPower(0);
         //Drive to center between lander and samples
-        robot.driveTrain.lineDrive(-17.5-robot.driveTrain.getPosition().x, 0.8);
+        robot.driveTrain.lineDrive(-15.5-robot.driveTrain.getPosition().x, 0.8);
 
         //Strafe out
-        strafeInches(21-robot.driveTrain.getPosition().y,0.8);
+        strafeInches(26-robot.driveTrain.getPosition().y,0.35);
 
         //Turn to be parallel to field walls
         robot.driveTrain.degreeTurn(-45-robot.driveTrain.getPosition().phi, 0.7);
@@ -338,11 +338,11 @@ public class AutonomousCraterDouble extends LinearOpMode {
         p1 *= turnDirection;
         robot.driveTrain.setPower(p1, p1, -p1, -p1);
         if(turnDirection > 0) {
-            while(!(robot.driveTrain.getPosition().phi >= phi)) {
+            while(!(robot.driveTrain.getPosition().phi >= phi) && opModeIsActive()) {
                 Thread.sleep(50);
             }
         } else {
-            while (!(robot.driveTrain.getPosition().phi <= phi)) {
+            while (!(robot.driveTrain.getPosition().phi <= phi) && opModeIsActive()) {
                 Thread.sleep(50);
             }
         }
@@ -361,13 +361,13 @@ public class AutonomousCraterDouble extends LinearOpMode {
         robot.driveTrain.setPower(p1);
         if(driveDirection > 0) {
             Position pos = robot.driveTrain.getPosition();
-            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0) && opModeIsActive()) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
             }
         } else {
             Position pos = robot.driveTrain.getPosition();
-            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0) && opModeIsActive()) {
                 Thread.sleep(50);
                 pos = robot.driveTrain.getPosition();
             }
@@ -387,13 +387,13 @@ public class AutonomousCraterDouble extends LinearOpMode {
         robot.driveTrain.setPower(p1, -p1, -p1, p1);
         if(driveDirection > 0) {
             Position pos = robot.driveTrain.getPosition();
-            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0)) {
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) <= 0) && opModeIsActive()) {
                 Thread.sleep(20);
                 pos = robot.driveTrain.getPosition();
             }
         } else {
             Position pos = robot.driveTrain.getPosition();
-            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0)) {
+            while(!(MathFTC.distance(pos.x, pos.y, xF, yF, cos, sin) >= 0) && opModeIsActive()) {
                 Thread.sleep(20);
                 pos = robot.driveTrain.getPosition();
             }

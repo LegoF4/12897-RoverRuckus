@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utilities.misc.StaticLog;
  * Created by LeviG on 12/11/2018.
  */
 @TeleOp(name = "PID Turning")
+@Disabled
 public class TeleOpPIDTurning extends LinearOpMode {
 
     Robot robot;
